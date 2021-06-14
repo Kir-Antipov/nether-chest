@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.kirantipov.mods.netherchest.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinLevelProperties"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

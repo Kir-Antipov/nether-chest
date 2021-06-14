@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "netherchest",
+  "version": "${version}",
+  "name": "Nether Chest",
+  "description": "Shared cloud storage for Minecraft.",
+  "authors": [
+    "Kir_Antipov"
+  ],
+  "contact": {
+    "website": "https://github.com/Kir-Antipov/nether-chest",
+    "repo": "https://github.com/Kir-Antipov/nether-chest",
+    "issues": "https://github.com/Kir-Antipov/nether-chest/issues/new/choose"
+  },
+  "license": "MIT",
+  "icon": "assets/netherchest/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "me.kirantipov.mods.netherchest.NetherChest"
+    ],
+    "client": [
+      "me.kirantipov.mods.netherchest.NetherChest"
+    ]
+  },
+  "mixins": [
+    "netherchest.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "fabricloader": "${fabric}",
+    "minecraft": "${minecraft}"
+  }
+}
