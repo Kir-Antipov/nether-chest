@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OOO",
+    "O#O",
+    "OOO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:nether_bricks"
+    },
+    "#": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "item": "netherchest:nether_chest"
+  }
+}
