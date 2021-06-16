@@ -3,12 +3,14 @@ package me.kirantipov.mods.netherchest.block.entity;
 import me.kirantipov.mods.netherchest.NetherChest;
 import me.kirantipov.mods.netherchest.block.NetherChestBlocks;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 
 public final class NetherChestBlockEntities {
     public static final BlockEntityType<NetherChestBlockEntity> NETHER_CHEST;
@@ -19,8 +21,8 @@ public final class NetherChestBlockEntities {
 
     public static void init() { }
 
-    private static <T extends BlockEntity> BlockEntityType<T> register(String id, Supplier<T> supplier, Block block) {
+    private static <T extends BlockEntity> BlockEntityType<T> register(String id, BiFunction<BlockPos, BlockState, T> supplier, Block block) {
         Identifier trueId = NetherChest.locate(id);
-        return Registry.register(Registry.BLOCK_ENTITY_TYPE, trueId, BlockEntityType.Builder.create(supplier, block).build(null));
+        return Registry.register(Registry.BLOCK_ENTITY_TYPE, trueId, BlockEntityType.Builder.create(supplier::apply, block).build(null));
     }
 }

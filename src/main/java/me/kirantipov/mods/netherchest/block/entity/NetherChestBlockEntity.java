@@ -1,106 +1,101 @@
 package me.kirantipov.mods.netherchest.block.entity;
 
 import me.kirantipov.mods.netherchest.block.NetherChestBlocks;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvironmentInterface;
-import net.fabricmc.api.EnvironmentInterfaces;
-import net.minecraft.block.entity.ChestBlockEntity;
+import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
+import me.kirantipov.mods.netherchest.inventory.NetherChestInventoryHolder;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChestLidAnimator;
+import net.minecraft.block.entity.ChestStateManager;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Tickable;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldProperties;
 
-@EnvironmentInterfaces({@EnvironmentInterface(
-    value = EnvType.CLIENT,
-    itf = ChestAnimationProgress.class
-)})
-public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAnimationProgress, Tickable {
+public class NetherChestBlockEntity extends BlockEntity implements ChestAnimationProgress {
     private static final int VIEWER_COUNT_UPDATE_EVENT = 1;
     private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
     private static final SoundEvent CLOSE_SOUND = SoundEvents.BLOCK_ENDER_CHEST_CLOSE;
 
-    public float animationProgress;
-    public float lastAnimationProgress;
-    public int viewerCount;
-    private int ticks;
-
-    public NetherChestBlockEntity() {
-        super(NetherChestBlockEntities.NETHER_CHEST);
-    }
-
-    @Override
-    public void tick() {
-        if (++this.ticks % 20 * 4 == 0) {
-            syncViewerCount();
+    private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
+    private final ChestStateManager stateManager = new ChestStateManager() {
+        protected void onChestOpened(World world, BlockPos pos, BlockState state) {
+            this.playSound(world, pos, OPEN_SOUND);
         }
 
-        this.lastAnimationProgress = this.animationProgress;
-        float progress = this.animationProgress;
-        int x = this.pos.getX();
-        int y = this.pos.getY();
-        int z = this.pos.getZ();
-
-        if (this.viewerCount > 0 && progress == 0.0F) {
-            playSound(x, y, z, OPEN_SOUND);
+        protected void onChestClosed(World world, BlockPos pos, BlockState state) {
+            this.playSound(world, pos, CLOSE_SOUND);
         }
 
-        if (this.viewerCount == 0 && progress > 0.0F || this.viewerCount > 0 && progress < 1.0F) {
-            progress += 0.1F * (this.viewerCount > 0 ? 1 : -1);
+        private void playSound(World world, BlockPos pos, SoundEvent sound) {
+            final float VOLUME = 0.5F;
+            float pitch = world.random.nextFloat() * 0.1F + 0.9F;
 
-            if (this.animationProgress >= 0.5F && progress < 0.5F) {
-                playSound(x, y, z, CLOSE_SOUND);
+            world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, sound, SoundCategory.BLOCKS, VOLUME, pitch);
+        }
+
+        protected void onInteracted(World world, BlockPos pos, BlockState state, int oldViewerCount, int newViewerCount) {
+            world.addSyncedBlockEvent(NetherChestBlockEntity.this.pos, NetherChestBlocks.NETHER_CHEST, VIEWER_COUNT_UPDATE_EVENT, newViewerCount);
+        }
+
+        protected boolean isPlayerViewing(PlayerEntity player) {
+            if (NetherChestBlockEntity.this.world.isClient) {
+                return false;
             }
+
+            WorldProperties properties = world.getServer().getOverworld().getLevelProperties();
+            if (!(properties instanceof NetherChestInventoryHolder)) {
+                return false;
+            }
+
+            NetherChestInventory netherChestInventory = ((NetherChestInventoryHolder)properties).getNetherChestInventory();
+            if (netherChestInventory == null) {
+                return false;
+            }
+
+            return netherChestInventory.isActiveBlockEntity(player,NetherChestBlockEntity.this);
         }
+    };
 
-        this.animationProgress = Math.min(Math.max(progress, 0), 1);
+    public NetherChestBlockEntity(BlockPos pos, BlockState state) {
+        super(NetherChestBlockEntities.NETHER_CHEST, pos, state);
     }
 
-    private void playSound(int x, int y, int z, SoundEvent sound) {
-        final float VOLUME = 0.5F;
-        float pitch = this.world.random.nextFloat() * 0.1F + 0.9F;
-
-        this.world.playSound(null, x + 0.5, y + 0.5, z + 0.5, sound, SoundCategory.BLOCKS, VOLUME, pitch);
+    public static void clientTick(World world, BlockPos pos, BlockState state, NetherChestBlockEntity blockEntity) {
+        blockEntity.lidAnimator.step();
     }
 
-    private void syncViewerCount() {
-        this.world.addSyncedBlockEvent(this.pos, NetherChestBlocks.NETHER_CHEST, VIEWER_COUNT_UPDATE_EVENT, this.viewerCount);
-    }
-
-    @Override
     public boolean onSyncedBlockEvent(int type, int data) {
         if (type == VIEWER_COUNT_UPDATE_EVENT) {
-            this.viewerCount = data;
+            this.lidAnimator.setOpen(data > 0);
             return true;
+        } else {
+            return super.onSyncedBlockEvent(type, data);
+        }
+    }
+
+    public void onOpen(PlayerEntity player) {
+        if (!this.removed && !player.isSpectator()) {
+            this.stateManager.openChest(player, this.getWorld(), this.getPos(), this.getCachedState());
         }
 
-        return super.onSyncedBlockEvent(type, data);
     }
 
-    @Override
-    public void markRemoved() {
-        this.resetBlock();
-        super.markRemoved();
+    public void onClose(PlayerEntity player) {
+        if (!this.removed && !player.isSpectator()) {
+            this.stateManager.closeChest(player, this.getWorld(), this.getPos(), this.getCachedState());
+        }
+
     }
 
-    public void onOpen() {
-        ++this.viewerCount;
-        syncViewerCount();
-    }
-
-    public void onClose() {
-        --this.viewerCount;
-        syncViewerCount();
-    }
-
-    @Override
-    public boolean canPlayerUse(PlayerEntity playerEntity) {
+    public boolean canPlayerUse(PlayerEntity player) {
         if (this.world.getBlockEntity(this.pos) == this) {
             final double MAX_DISTANCE = 64;
-            double distance = playerEntity.squaredDistanceTo((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D);
+            double distance = player.squaredDistanceTo((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D);
 
             return distance <= MAX_DISTANCE;
         }
@@ -108,9 +103,13 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
         return false;
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
+    public void onScheduledTick() {
+        if (!this.removed) {
+            this.stateManager.updateViewerCount(this.getWorld(), this.getPos(), this.getCachedState());
+        }
+    }
+
     public float getAnimationProgress(float tickDelta) {
-        return MathHelper.lerp(tickDelta, this.lastAnimationProgress, this.animationProgress);
+        return this.lidAnimator.getProgress(tickDelta);
     }
 }
