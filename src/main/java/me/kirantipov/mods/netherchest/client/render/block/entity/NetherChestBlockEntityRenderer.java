@@ -11,17 +11,19 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.DoubleBlockProperties;
 import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.ChestBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.LightmapCoordinatesRetriever;
+import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.World;
 
 @Environment(EnvType.CLIENT)
@@ -33,20 +35,13 @@ public class NetherChestBlockEntityRenderer extends ChestBlockEntityRenderer<Net
     private final ModelPart singleChestBase;
     private final ModelPart singleChestLatch;
 
-    public NetherChestBlockEntityRenderer(BlockEntityRenderDispatcher blockEntityRenderDispatcher) {
-        super(blockEntityRenderDispatcher);
+    public NetherChestBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
+        super(context);
 
-        this.singleChestBase = new ModelPart(64, 64, 0, 19);
-        this.singleChestBase.addCuboid(1.0F, 0.0F, 1.0F, 14.0F, 10.0F, 14.0F, 0.0F);
-
-        this.singleChestLid = new ModelPart(64, 64, 0, 0);
-        this.singleChestLid.addCuboid(1.0F, 0.0F, 0.0F, 14.0F, 5.0F, 14.0F, 0.0F);
-        this.singleChestLid.pivotY = 9.0F;
-        this.singleChestLid.pivotZ = 1.0F;
-
-        this.singleChestLatch = new ModelPart(64, 64, 0, 0);
-        this.singleChestLatch.addCuboid(7.0F, -1.0F, 15.0F, 2.0F, 4.0F, 1.0F, 0.0F);
-        this.singleChestLatch.pivotY = 8.0F;
+        ModelPart modelPart = context.getLayerModelPart(EntityModelLayers.CHEST);
+        this.singleChestBase = modelPart.getChild("bottom");
+        this.singleChestLid = modelPart.getChild("lid");
+        this.singleChestLatch = modelPart.getChild("lock");
     }
 
     @Override
@@ -62,7 +57,7 @@ public class NetherChestBlockEntityRenderer extends ChestBlockEntityRenderer<Net
 
             float rotation = blockState.get(ChestBlock.FACING).asRotation();
             matrices.translate(0.5D, 0.5D, 0.5D);
-            matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-rotation));
+            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-rotation));
             matrices.translate(-0.5D, -0.5D, -0.5D);
 
             DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> properties;
@@ -87,7 +82,7 @@ public class NetherChestBlockEntityRenderer extends ChestBlockEntityRenderer<Net
         return vertexConsumers.getBuffer(RenderLayer.getEntityCutout(NETHER_CHEST_SPRITE_ID));
     }
 
-    private static float computeOpenFactor(DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> propertySource, ChestBlockEntity chestBlockEntity, float tickDelta) {
+    private static float computeOpenFactor(DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> propertySource, ChestAnimationProgress chestBlockEntity, float tickDelta) {
         float factor = 1.0F - propertySource.apply(ChestBlock.getAnimationProgressRetriever(chestBlockEntity)).get(tickDelta);
         return 1.0F - factor * factor * factor;
     }
