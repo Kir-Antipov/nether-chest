@@ -3,8 +3,8 @@ plugins {
     id 'org.ajoberstar.grgit' version '4.1.0'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
 def loaderDependencyVersion = ">=${project.loader_version.split(/\+/)[0]}"
 def minecraftDependencyVersion = project.minecraft_version.split(/[+ -]/)[0].replaceFirst(/^(\d+\.\d+)((?:\.\d+)|)$/, '$1.x')
@@ -40,6 +40,7 @@ tasks.withType(JavaCompile).configureEach {
     // If Javadoc is generated, this must be specified in that task too.
     it.options.encoding = "UTF-8"
 
+    it.options.release = 16
 }
 
 java {
