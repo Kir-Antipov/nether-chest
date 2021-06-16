@@ -23,6 +23,7 @@
       "me.kirantipov.mods.netherchest.NetherChest"
     ]
   },
+  "accessWidener": "netherchest.accesswidener",
   "mixins": [
     "netherchest.mixins.json"
   ],
