@@ -5,9 +5,9 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.Lifecycle;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventoryHolder;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.level.LevelInfo;
@@ -40,13 +40,13 @@ public class MixinLevelProperties implements NetherChestInventoryHolder {
     }
 
     @Inject(method = "readProperties", at = @At("RETURN"))
-    private static void onReadProperties(Dynamic<Tag> dynamic, DataFixer dataFixer, int dataVersion, CompoundTag playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
+    private static void onReadProperties(Dynamic<NbtElement> dynamic, DataFixer dataFixer, int dataVersion, NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
         NetherChestInventory inventory = new NetherChestInventory();
-        Optional<Dynamic<Tag>> optionalNetherItemsTag = dynamic.get(NETHER_CHEST_TAG_NAME).result();
+        Optional<Dynamic<NbtElement>> optionalNetherItemsTag = dynamic.get(NETHER_CHEST_TAG_NAME).result();
         if (optionalNetherItemsTag.isPresent()) {
-            Tag netherItemsTag = optionalNetherItemsTag.get().getValue();
-            if (netherItemsTag instanceof ListTag) {
-                inventory.readTags((ListTag)netherItemsTag);
+            NbtElement netherItemsTag = optionalNetherItemsTag.get().getValue();
+            if (netherItemsTag instanceof NbtList) {
+                inventory.readNbtList((NbtList)netherItemsTag);
             }
         }
 
@@ -55,8 +55,8 @@ public class MixinLevelProperties implements NetherChestInventoryHolder {
     }
 
     @Inject(method = "updateProperties", at = @At("RETURN"))
-    private void onUpdateProperties(DynamicRegistryManager dynamicRegistryManager, CompoundTag compoundTag, CompoundTag compoundTag2, CallbackInfo ci) {
+    private void onUpdateProperties(DynamicRegistryManager registryManager, NbtCompound compoundTag, NbtCompound playerTag, CallbackInfo ci) {
         NetherChestInventory netherChestInventory = this.getNetherChestInventory();
-        compoundTag.put(NETHER_CHEST_TAG_NAME, netherChestInventory.getTags());
+        compoundTag.put(NETHER_CHEST_TAG_NAME, netherChestInventory.toNbtList());
     }
 }

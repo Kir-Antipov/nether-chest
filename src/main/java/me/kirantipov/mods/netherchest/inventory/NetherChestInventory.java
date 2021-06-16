@@ -4,8 +4,8 @@ import me.kirantipov.mods.netherchest.block.entity.NetherChestBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -24,30 +24,30 @@ public class NetherChestInventory extends SimpleInventory {
     }
 
     @Override
-    public void readTags(ListTag tags) {
+    public void readNbtList(NbtList tags) {
         for(int i = 0; i < this.size(); ++i) {
             this.setStack(i, ItemStack.EMPTY);
         }
 
         for(int i = 0; i < tags.size(); ++i) {
-            CompoundTag compoundTag = tags.getCompound(i);
+            NbtCompound compoundTag = tags.getCompound(i);
             int slot = compoundTag.getByte("Slot");
             if (slot < this.size()) {
-                this.setStack(slot, ItemStack.fromTag(compoundTag));
+                this.setStack(slot, ItemStack.fromNbt(compoundTag));
             }
         }
     }
 
     @Override
-    public ListTag getTags() {
-        ListTag listTag = new ListTag();
+    public NbtList toNbtList() {
+        NbtList listTag = new NbtList();
 
         for(int i = 0; i < this.size(); ++i) {
             ItemStack itemStack = this.getStack(i);
             if (!itemStack.isEmpty()) {
-                CompoundTag compoundTag = new CompoundTag();
+                NbtCompound compoundTag = new NbtCompound();
                 compoundTag.putByte("Slot", (byte)i);
-                itemStack.toTag(compoundTag);
+                itemStack.writeNbt(compoundTag);
                 listTag.add(compoundTag);
             }
         }
@@ -69,7 +69,7 @@ public class NetherChestInventory extends SimpleInventory {
     public void onOpen(PlayerEntity player) {
         NetherChestBlockEntity netherChestBlockEntity = this.activeBlockEntities.getOrDefault(player, null);
         if (netherChestBlockEntity != null) {
-            netherChestBlockEntity.onOpen();
+            netherChestBlockEntity.onOpen(player);
         }
 
         super.onOpen(player);
@@ -79,10 +79,14 @@ public class NetherChestInventory extends SimpleInventory {
     public void onClose(PlayerEntity player) {
         NetherChestBlockEntity netherChestBlockEntity = this.activeBlockEntities.getOrDefault(player, null);
         if (netherChestBlockEntity != null) {
-            netherChestBlockEntity.onClose();
+            netherChestBlockEntity.onClose(player);
         }
 
         super.onClose(player);
         this.activeBlockEntities.remove(player);
+    }
+
+    public boolean isActiveBlockEntity(PlayerEntity player, NetherChestBlockEntity blockEntity) {
+        return activeBlockEntities.getOrDefault(player, null) == blockEntity;
     }
 }
