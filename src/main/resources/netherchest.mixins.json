@@ -4,7 +4,8 @@
   "package": "me.kirantipov.mods.netherchest.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinLevelProperties"
+    "MixinLevelProperties",
+    "MixinMinecraftServer"
   ],
   "client": [
   ],
