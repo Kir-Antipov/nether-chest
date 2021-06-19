@@ -5,7 +5,10 @@ import me.kirantipov.mods.netherchest.NetherChestConfig;
 import me.kirantipov.mods.netherchest.block.NetherChestBlocks;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventoryHolder;
+import me.kirantipov.mods.netherchest.util.InventoryUtil;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestLidAnimator;
 import net.minecraft.block.entity.ChestStateManager;
@@ -16,6 +19,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProperties;
 
@@ -24,6 +28,7 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
     private static final SoundEvent CLOSE_SOUND = SoundEvents.BLOCK_ENDER_CHEST_CLOSE;
 
+    private InventoryChangedListener listener;
     private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
     private final ChestStateManager stateManager = new ChestStateManager() {
         protected void onChestOpened(World world, BlockPos pos, BlockState state) {
@@ -129,6 +134,16 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
             }
         } else {
             removeListener();
+        }
+    }
+
+    private void removeListener() {
+        if (this.listener != null) {
+            NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+            if (netherChestInventory != null) {
+                netherChestInventory.removeListener(this.listener);
+                this.listener = null;
+            }
         }
     }
 

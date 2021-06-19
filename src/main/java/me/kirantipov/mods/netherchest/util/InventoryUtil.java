@@ -12,7 +12,7 @@ public final class InventoryUtil {
             return null;
         }
 
-        WorldProperties properties = ((World)world).getServer().getOverworld().getLevelProperties();
+        WorldProperties properties = world.getServer().getOverworld().getLevelProperties();
         if (!(properties instanceof NetherChestInventoryHolder)) {
             return null;
         }

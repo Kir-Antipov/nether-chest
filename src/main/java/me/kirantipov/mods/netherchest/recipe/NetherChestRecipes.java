@@ -26,7 +26,7 @@ public final class NetherChestRecipes {
             if (item == null) {
                 return;
             }
-            recipe.getPreviewInputs().set(4, Ingredient.ofItems(item));
+            recipe.getIngredients().set(4, Ingredient.ofItems(item));
         });
     }
 }
