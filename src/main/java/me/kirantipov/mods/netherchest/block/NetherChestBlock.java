@@ -1,9 +1,10 @@
 package me.kirantipov.mods.netherchest.block;
 
+import me.kirantipov.mods.netherchest.NetherChest;
 import me.kirantipov.mods.netherchest.block.entity.NetherChestBlockEntities;
 import me.kirantipov.mods.netherchest.block.entity.NetherChestBlockEntity;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
-import me.kirantipov.mods.netherchest.inventory.NetherChestInventoryHolder;
+import me.kirantipov.mods.netherchest.util.InventoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
@@ -14,9 +15,11 @@ import net.minecraft.entity.mob.PiglinBrain;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
@@ -35,12 +38,11 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldProperties;
 
 import java.util.Random;
 
 @SuppressWarnings("deprecation")
-public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity> implements Waterloggable {
+public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity> implements Waterloggable, InventoryProvider {
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
@@ -85,12 +87,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
             return ActionResult.SUCCESS;
         }
 
-        WorldProperties properties = world.getServer().getOverworld().getLevelProperties();
-        if (!(properties instanceof NetherChestInventoryHolder)) {
-            return ActionResult.SUCCESS;
-        }
-
-        NetherChestInventory netherChestInventory = ((NetherChestInventoryHolder)properties).getNetherChestInventory();
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(world);
         if (netherChestInventory == null) {
             return ActionResult.SUCCESS;
         }
@@ -149,5 +146,20 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
     @Override
     public boolean canPathfindThrough(BlockState state, BlockView world, BlockPos pos, NavigationType type) {
         return false;
+    }
+
+    @Override
+    public boolean hasComparatorOutput(BlockState state) {
+        return NetherChest.getConfig().allowRedstoneIntegration;
+    }
+
+    @Override
+    public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+        return ScreenHandler.calculateComparatorOutput(InventoryUtil.getNetherChestInventory(world));
+    }
+
+    @Override
+    public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos) {
+        return InventoryUtil.getNetherChestInventory(world);
     }
 }

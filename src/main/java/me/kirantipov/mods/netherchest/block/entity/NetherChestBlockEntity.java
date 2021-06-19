@@ -1,17 +1,27 @@
 package me.kirantipov.mods.netherchest.block.entity;
 
+import me.kirantipov.mods.netherchest.NetherChest;
+import me.kirantipov.mods.netherchest.NetherChestConfig;
 import me.kirantipov.mods.netherchest.block.NetherChestBlocks;
+import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
+import me.kirantipov.mods.netherchest.util.InventoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvironmentInterface;
 import net.fabricmc.api.EnvironmentInterfaces;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
 @EnvironmentInterfaces({@EnvironmentInterface(
@@ -27,6 +37,7 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
     public float lastAnimationProgress;
     public int viewerCount;
     private int ticks;
+    private InventoryChangedListener listener;
 
     public NetherChestBlockEntity() {
         super(NetherChestBlockEntities.NETHER_CHEST);
@@ -37,6 +48,8 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
         if (++this.ticks % 20 * 4 == 0) {
             syncViewerCount();
         }
+
+        setupRedstoneIntegration();
 
         this.lastAnimationProgress = this.animationProgress;
         float progress = this.animationProgress;
@@ -59,6 +72,42 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
         this.animationProgress = Math.min(Math.max(progress, 0), 1);
     }
 
+    private void setupRedstoneIntegration() {
+        NetherChestConfig config = NetherChest.getConfig();
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+
+        if (config.allowRedstoneIntegration) {
+            if (config.updateNeighborsEveryTick) {
+                removeListener();
+                this.updateNeighbors();
+            } else {
+                if (this.listener == null && netherChestInventory != null) {
+                    this.listener = x -> this.updateNeighbors();
+                    netherChestInventory.addListener(listener);
+                }
+            }
+        } else {
+            removeListener();
+        }
+    }
+
+    private void updateNeighbors() {
+        if (!this.world.isClient) {
+            BlockPos sourcePos = this.getPos();
+            Direction[] directions = Direction.values();
+            for (Direction direction : directions) {
+                for (int i = 1; i <= 2; ++i) {
+                    BlockPos targetPos = sourcePos.offset(direction, i);
+                    BlockState targetState = this.world.getBlockState(targetPos);
+                    Block targetBlock = targetState.getBlock();
+                    if (targetBlock == Blocks.COMPARATOR) {
+                        targetState.neighborUpdate(this.world, targetPos, targetBlock, sourcePos, false);
+                    }
+                }
+            }
+        }
+    }
+
     private void playSound(int x, int y, int z, SoundEvent sound) {
         final float VOLUME = 0.5F;
         float pitch = this.world.random.nextFloat() * 0.1F + 0.9F;
@@ -68,6 +117,15 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
 
     private void syncViewerCount() {
         this.world.addSyncedBlockEvent(this.pos, NetherChestBlocks.NETHER_CHEST, VIEWER_COUNT_UPDATE_EVENT, this.viewerCount);
+    }
+
+    private void removeListener() {
+        if (this.listener != null) {
+            NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+            if (netherChestInventory != null) {
+                netherChestInventory.removeListener(listener);
+            }
+        }
     }
 
     @Override
@@ -83,6 +141,7 @@ public class NetherChestBlockEntity extends ChestBlockEntity implements ChestAni
     @Override
     public void markRemoved() {
         this.resetBlock();
+        this.removeListener();
         super.markRemoved();
     }
 
