@@ -5,6 +5,7 @@ import me.kirantipov.mods.netherchest.block.entity.NetherChestBlockEntities;
 import me.kirantipov.mods.netherchest.client.render.NetherChestRenderers;
 import me.kirantipov.mods.netherchest.config.ConfigManager;
 import me.kirantipov.mods.netherchest.item.NetherChestItems;
+import me.kirantipov.mods.netherchest.recipe.NetherChestRecipes;
 import me.kirantipov.mods.netherchest.server.ServerShutdownListeners;
 import me.kirantipov.mods.netherchest.server.ServerStartListeners;
 import net.fabricmc.api.ClientModInitializer;
@@ -45,6 +46,8 @@ public class NetherChest implements ModInitializer, ClientModInitializer {
         CONFIG_MANAGER.removeAllListeners();
         CONFIG_MANAGER.load(server);
         CONFIG_MANAGER.registerCommands(server.getCommandManager().getDispatcher());
+        NetherChestRecipes.init(server.getRecipeManager());
+        CONFIG_MANAGER.addListener(x -> NetherChestRecipes.init(server.getRecipeManager()));
     }
 
     private static void onServerStop(MinecraftServer server) {
