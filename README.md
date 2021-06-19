@@ -25,10 +25,40 @@ This mod adds a single block to the game - the nether chest. It acts pretty much
 
 This crafting recipe may seem a little bit expensive, but from a balancing point of view, everything is more than justified:
 
- - This mod is intended for multiplayer *(I mean, what's the point in the nether chest in single player if it's indistinguishable from a regular ender chest?)*. The Wither is an extremely weak enemy for several players even at the maximum difficulty level. So getting a couple of extra nether stars won't be difficult task for you and your friends
+ - This mod is intended for multiplayer. The Wither is an extremely weak enemy for several players even at the maximum difficulty level. So getting a couple of extra nether stars won't be difficult task for you and your friends
  - The nether chest is an "endgame" block. If you can spend a nether star to craft a chest, then trite time-saving isn't cheating. However, in the early game stages, exchanging items between players that are separated by thousands of blocks may be overpowered
 
 **NOTE:** nether chests should be silk touched if you don't want to lose your nether stars :)
+
+If you play on peaceful, the nether star in the crafting recipe can be replaced with something else with this command:
+
+```cmd
+/netherchest coreItem minecraft:magma_cream
+```
+
+*(You must be a server operator to execute this command)*
+
+### Redstone Integration
+
+![Hoppers/Comparators actually work](media/redstone.png)
+
+As you can see, nether chests are compatible with hoppers and comparators. However, this feature is **disabled** by default.
+
+Enable:
+```cmd
+/netherchest allowRedstoneIntegration true
+```
+
+Disable:
+```cmd
+/netherchest allowRedstoneIntegration false
+```
+
+**NOTE:** comparators assume that an object no one was in contact with cannot change its state. So, in some edge cases (e.g., during chunk loading) output of a comparator may not match the nether chest's state. It can be "fixed", if nether chests would update their neighbors every tick:
+
+```cmd
+/netherchest updateNeighborsEveryTick true
+```
 
 ----
 
