@@ -1,5 +1,7 @@
 package me.kirantipov.mods.netherchest.block.entity;
 
+import me.kirantipov.mods.netherchest.NetherChest;
+import me.kirantipov.mods.netherchest.NetherChestConfig;
 import me.kirantipov.mods.netherchest.block.NetherChestBlocks;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventory;
 import me.kirantipov.mods.netherchest.inventory.NetherChestInventoryHolder;
@@ -9,6 +11,7 @@ import net.minecraft.block.entity.ChestLidAnimator;
 import net.minecraft.block.entity.ChestStateManager;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -105,7 +108,44 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     public void onScheduledTick() {
         if (!this.removed) {
+            this.setupRedstoneIntegration();
             this.stateManager.updateViewerCount(this.getWorld(), this.getPos(), this.getCachedState());
+        }
+    }
+
+    private void setupRedstoneIntegration() {
+        NetherChestConfig config = NetherChest.getConfig();
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+
+        if (config.allowRedstoneIntegration) {
+            if (config.updateNeighborsEveryTick) {
+                removeListener();
+                this.updateNeighbors();
+            } else {
+                if (this.listener == null && netherChestInventory != null) {
+                    this.listener = x -> this.updateNeighbors();
+                    netherChestInventory.addListener(listener);
+                }
+            }
+        } else {
+            removeListener();
+        }
+    }
+
+    private void updateNeighbors() {
+        if (!this.world.isClient) {
+            BlockPos sourcePos = this.getPos();
+            Direction[] directions = Direction.values();
+            for (Direction direction : directions) {
+                for (int i = 1; i <= 2; ++i) {
+                    BlockPos targetPos = sourcePos.offset(direction, i);
+                    BlockState targetState = this.world.getBlockState(targetPos);
+                    Block targetBlock = targetState.getBlock();
+                    if (targetBlock == Blocks.COMPARATOR) {
+                        targetState.neighborUpdate(this.world, targetPos, targetBlock, sourcePos, false);
+                    }
+                }
+            }
         }
     }
 

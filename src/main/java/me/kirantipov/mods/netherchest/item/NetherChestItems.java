@@ -15,7 +15,7 @@ public final class NetherChestItems {
     public static final Item NETHER_CHEST;
 
     static {
-        NETHER_CHEST = register("nether_chest", NetherChestBlocks.NETHER_CHEST, new FabricItemSettings().group(ItemGroup.DECORATIONS).rarity(Rarity.UNCOMMON).maxCount(64));
+        NETHER_CHEST = register("nether_chest", NetherChestBlocks.NETHER_CHEST, new FabricItemSettings().group(ItemGroup.DECORATIONS).rarity(Rarity.RARE).maxCount(64));
     }
 
     public static void init() { }
