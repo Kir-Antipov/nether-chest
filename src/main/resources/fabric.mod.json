@@ -35,8 +35,9 @@
   },
   "depends": {
     "fabric": "*",
-    "fabricloader": "${fabric}",
-    "minecraft": "${minecraft}",
-    "java": ">=16"
+    "fabricloader": "*"
+  },
+  "suggests": {
+    "minecraft": "${minecraft}"
   }
 }

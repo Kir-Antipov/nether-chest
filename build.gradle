@@ -1,20 +1,19 @@
 plugins {
-    id 'fabric-loom' version '0.8-SNAPSHOT'
+    id 'fabric-loom' version '0.10-SNAPSHOT'
     id 'org.ajoberstar.grgit' version '4.1.0'
 }
 
-sourceCompatibility = JavaVersion.VERSION_16
-targetCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
-def loaderDependencyVersion = ">=${project.loader_version.split(/\+/)[0]}"
-def minecraftDependencyVersion = project.minecraft_version.split(/[+ -]/)[0].replaceFirst(/^(\d+\.\d+)((?:\.\d+)|)$/, '$1.x')
+def minecraftDependencyVersion = project.minecraft_version.split(/[+ -]/)[0]
 
 group = project.maven_group
 version = "${project.mod_version}${getVersionMetadata()}"
 archivesBaseName = "${project.archives_base_name}-mc${minecraftDependencyVersion}"
 
 dependencies {
-    //to change the versions see the gradle.properties file
+    // to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -22,14 +21,13 @@ dependencies {
 }
 
 minecraft {
-    accessWidener = file("src/main/resources/netherchest.accesswidener")
+    accessWidenerPath = file("src/main/resources/netherchest.accesswidener")
 }
 
 processResources {
     def fabricModProperties = [
         "version": version,
-        "fabric": loaderDependencyVersion,
-        "minecraft": minecraftDependencyVersion
+        "minecraft": ">=${minecraftDependencyVersion}"
     ]
 
     filesMatching("fabric.mod.json") {
@@ -44,13 +42,10 @@ tasks.withType(JavaCompile).configureEach {
     // If Javadoc is generated, this must be specified in that task too.
     it.options.encoding = "UTF-8"
 
-    it.options.release = 16
+    it.options.release.set(17)
 }
 
 java {
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
     withSourcesJar()
 }
 
