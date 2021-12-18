@@ -1,6 +1,5 @@
 package dev.kir.netherchest.block;
 
-import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
 import dev.kir.netherchest.inventory.NetherChestInventory;
@@ -21,7 +20,6 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -167,12 +165,12 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public boolean hasComparatorOutput(BlockState state) {
-        return NetherChest.getConfig().allowRedstoneIntegration;
+        return true;
     }
 
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        return ScreenHandler.calculateComparatorOutput(InventoryUtil.getNetherChestInventory(world));
+        return InventoryUtil.getNetherChestInventory(world).getComparatorOutput();
     }
 
     @Override

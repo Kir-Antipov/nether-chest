@@ -1,6 +1,5 @@
 package dev.kir.netherchest.block.entity;
 
-import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.NetherChestBlocks;
 import dev.kir.netherchest.inventory.NetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventoryHolder;
@@ -12,7 +11,6 @@ import net.minecraft.block.entity.ViewerCountManager;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -74,14 +72,10 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     }
 
     public static void serverTick(World world, BlockPos pos, BlockState state, NetherChestBlockEntity blockEntity) {
-        if (!blockEntity.inventoryDirty) {
-            return;
-        }
-
-        if (NetherChest.getConfig().allowRedstoneIntegration) {
+        if (blockEntity.inventoryDirty) {
             world.updateComparators(pos, state.getBlock());
+            blockEntity.inventoryDirty = false;
         }
-        blockEntity.inventoryDirty = false;
     }
 
     @SuppressWarnings("unused")
@@ -146,7 +140,7 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
         NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
         if (this.listener == null && netherChestInventory != null) {
             this.listener = x -> {
-                int output = ScreenHandler.calculateComparatorOutput(x);
+                int output = ((NetherChestInventory)x).getComparatorOutput();
                 this.inventoryDirty |= this.syncedOutput != output;
                 this.syncedOutput = output;
             };
