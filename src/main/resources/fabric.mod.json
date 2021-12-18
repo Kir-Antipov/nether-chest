@@ -21,6 +21,9 @@
     ],
     "client": [
       "dev.kir.netherchest.NetherChest"
+    ],
+    "modmenu": [
+      "dev.kir.netherchest.compat.modmenu.ModMenuCompat"
     ]
   },
   "accessWidener": "netherchest.accesswidener",
@@ -38,6 +41,7 @@
     "fabricloader": "*"
   },
   "suggests": {
+    "modmenu": "${modmenu}",
     "minecraft": "${minecraft}"
   },
   "includes": {
