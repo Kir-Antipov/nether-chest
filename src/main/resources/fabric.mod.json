@@ -27,6 +27,12 @@
   "mixins": [
     "netherchest.mixins.json"
   ],
+  "custom": {
+    "modmanager": {
+      "modrinth": "okOUGirG",
+      "curseforge": 494585
+    }
+  },
   "depends": {
     "fabric": "*",
     "fabricloader": "${fabric}",
