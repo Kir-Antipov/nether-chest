@@ -109,7 +109,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return world.isClient ? checkType(type, NetherChestBlockEntities.NETHER_CHEST, NetherChestBlockEntity::clientTick) : null;
+        return world.isClient ? checkType(type, NetherChestBlockEntities.NETHER_CHEST, NetherChestBlockEntity::clientTick) : checkType(type, NetherChestBlockEntities.NETHER_CHEST, NetherChestBlockEntity::serverTick);
     }
 
     @Override

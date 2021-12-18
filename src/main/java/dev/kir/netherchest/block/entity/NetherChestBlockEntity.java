@@ -1,25 +1,22 @@
 package dev.kir.netherchest.block.entity;
 
 import dev.kir.netherchest.NetherChest;
-import dev.kir.netherchest.config.NetherChestConfig;
 import dev.kir.netherchest.block.NetherChestBlocks;
 import dev.kir.netherchest.inventory.NetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventoryHolder;
 import dev.kir.netherchest.util.InventoryUtil;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestLidAnimator;
 import net.minecraft.block.entity.ViewerCountManager;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProperties;
 
@@ -28,6 +25,8 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
     private static final SoundEvent CLOSE_SOUND = SoundEvents.BLOCK_ENDER_CHEST_CLOSE;
 
+    private int syncedOutput = -1;
+    private boolean inventoryDirty = true;
     private InventoryChangedListener listener;
     private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
     private final ViewerCountManager stateManager = new ViewerCountManager() {
@@ -71,6 +70,18 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     public NetherChestBlockEntity(BlockPos pos, BlockState state) {
         super(NetherChestBlockEntities.NETHER_CHEST, pos, state);
+        this.setupListener();
+    }
+
+    public static void serverTick(World world, BlockPos pos, BlockState state, NetherChestBlockEntity blockEntity) {
+        if (!blockEntity.inventoryDirty) {
+            return;
+        }
+
+        if (NetherChest.getConfig().allowRedstoneIntegration) {
+            world.updateComparators(pos, state.getBlock());
+        }
+        blockEntity.inventoryDirty = false;
     }
 
     @SuppressWarnings("unused")
@@ -114,54 +125,40 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     public void onScheduledTick() {
         if (!this.removed) {
-            this.setupRedstoneIntegration();
             this.stateManager.updateViewerCount(this.getWorld(), this.getPos(), this.getCachedState());
         }
     }
 
-    private void setupRedstoneIntegration() {
-        NetherChestConfig config = NetherChest.getConfig();
-        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+    @Override
+    public void markRemoved() {
+        super.markRemoved();
+        this.removeListener();
+    }
 
-        if (config.allowRedstoneIntegration) {
-            if (config.updateNeighborsEveryTick) {
-                removeListener();
-                this.updateNeighbors();
-            } else {
-                if (this.listener == null && netherChestInventory != null) {
-                    this.listener = x -> this.updateNeighbors();
-                    netherChestInventory.addListener(listener);
-                }
-            }
-        } else {
-            removeListener();
+    @Override
+    public void cancelRemoval() {
+        super.cancelRemoval();
+        this.inventoryDirty = true;
+        this.setupListener();
+    }
+
+    private void setupListener() {
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+        if (this.listener == null && netherChestInventory != null) {
+            this.listener = x -> {
+                int output = ScreenHandler.calculateComparatorOutput(x);
+                this.inventoryDirty |= this.syncedOutput != output;
+                this.syncedOutput = output;
+            };
+            netherChestInventory.addListener(listener);
         }
     }
 
     private void removeListener() {
-        if (this.listener != null) {
-            NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
-            if (netherChestInventory != null) {
-                netherChestInventory.removeListener(this.listener);
-                this.listener = null;
-            }
-        }
-    }
-
-    private void updateNeighbors() {
-        if (!this.world.isClient) {
-            BlockPos sourcePos = this.getPos();
-            Direction[] directions = Direction.values();
-            for (Direction direction : directions) {
-                for (int i = 1; i <= 2; ++i) {
-                    BlockPos targetPos = sourcePos.offset(direction, i);
-                    BlockState targetState = this.world.getBlockState(targetPos);
-                    Block targetBlock = targetState.getBlock();
-                    if (targetBlock == Blocks.COMPARATOR) {
-                        targetState.neighborUpdate(this.world, targetPos, targetBlock, sourcePos, false);
-                    }
-                }
-            }
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+        if (this.listener != null && netherChestInventory != null) {
+            netherChestInventory.removeListener(listener);
+            this.listener = null;
         }
     }
 
