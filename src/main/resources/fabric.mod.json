@@ -39,5 +39,8 @@
   },
   "suggests": {
     "minecraft": "${minecraft}"
+  },
+  "includes": {
+    "cloth-config": "${cloth_config}"
   }
 }
