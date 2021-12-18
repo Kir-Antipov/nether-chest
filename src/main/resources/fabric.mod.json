@@ -17,10 +17,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.kirantipov.mods.netherchest.NetherChest"
+      "dev.kir.netherchest.NetherChest"
     ],
     "client": [
-      "me.kirantipov.mods.netherchest.NetherChest"
+      "dev.kir.netherchest.NetherChest"
     ]
   },
   "accessWidener": "netherchest.accesswidener",
