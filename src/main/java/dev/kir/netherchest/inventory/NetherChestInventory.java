@@ -112,17 +112,17 @@ public class NetherChestInventory extends SimpleInventory implements SidedInvent
 
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return NetherChest.getConfig().allowRedstoneIntegration ? AVAILABLE_SLOTS : EMPTY_SLOTS;
+        return NetherChest.getConfig().allowHoppers ? AVAILABLE_SLOTS : EMPTY_SLOTS;
     }
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return NetherChest.getConfig().allowRedstoneIntegration;
+        return NetherChest.getConfig().allowHoppers;
     }
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return NetherChest.getConfig().allowRedstoneIntegration;
+        return NetherChest.getConfig().allowHoppers;
     }
 
     static {
