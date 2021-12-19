@@ -170,7 +170,8 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        return InventoryUtil.getNetherChestInventory(world).getComparatorOutput();
+        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(world);
+        return netherChestInventory == null ? 0 : netherChestInventory.getComparatorOutput();
     }
 
     @Override
