@@ -39,10 +39,6 @@ dependencies {
     })
 }
 
-minecraft {
-    accessWidenerPath = file("src/main/resources/netherchest.accesswidener")
-}
-
 processResources {
     def fabricModProperties = [
         "version": version,

@@ -26,7 +26,6 @@
       "dev.kir.netherchest.compat.modmenu.ModMenuCompat"
     ]
   },
-  "accessWidener": "netherchest.accesswidener",
   "mixins": [
     "netherchest.mixins.json"
   ],
