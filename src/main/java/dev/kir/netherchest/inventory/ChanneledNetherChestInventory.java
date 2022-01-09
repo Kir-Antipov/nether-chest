@@ -1,5 +1,6 @@
 package dev.kir.netherchest.inventory;
 
+import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
@@ -169,12 +170,12 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return true;
+        return NetherChest.getConfig().allowInsertion;
     }
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return true;
+        return NetherChest.getConfig().allowExtraction;
     }
 
     public void markRemoved() {

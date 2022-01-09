@@ -9,4 +9,10 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class NetherChestConfig implements ConfigData {
     @ConfigEntry.Gui.Tooltip(count = 2)
     public boolean allowHoppers = false;
+
+    @ConfigEntry.Gui.Tooltip(count = 2)
+    public boolean allowInsertion = true;
+
+    @ConfigEntry.Gui.Tooltip(count = 2)
+    public boolean allowExtraction = true;
 }
