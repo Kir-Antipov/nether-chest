@@ -1,8 +1,11 @@
 package dev.kir.netherchest.block;
 
+import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
+import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventory;
+import dev.kir.netherchest.screen.NetherChestScreenHandler;
 import dev.kir.netherchest.util.InventoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,7 +22,6 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -28,10 +30,7 @@ import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
+import net.minecraft.util.*;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -81,23 +80,33 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+        NetherChestBlockEntity netherChestBlockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
         BlockPos up = pos.up();
         boolean isBlocked = world.getBlockState(up).isSolidBlock(world, up);
-        if (!(blockEntity instanceof NetherChestBlockEntity) || world.isClient || isBlocked) {
+        if (netherChestBlockEntity == null || world.isClient || isBlocked) {
             return ActionResult.SUCCESS;
         }
 
-        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(world);
-        if (netherChestInventory == null) {
+        ChanneledNetherChestInventory inventory = netherChestBlockEntity.getInventory();
+        if (inventory == null) {
             return ActionResult.SUCCESS;
         }
 
-        NetherChestBlockEntity netherChestBlockEntity = (NetherChestBlockEntity)blockEntity;
-        netherChestInventory.setActiveBlockEntity(player, netherChestBlockEntity);
-        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(i, playerInventory, netherChestInventory), CONTAINER_NAME));
+        inventory.setActiveBlockEntity(netherChestBlockEntity);
+        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new NetherChestScreenHandler(i, playerInventory, inventory), CONTAINER_NAME));
         PiglinBrain.onGuardedBlockInteracted(player, true);
         return ActionResult.CONSUME;
+    }
+
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.isOf(newState.getBlock())) {
+            NetherChestBlockEntity netherChestBlockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
+            if (netherChestBlockEntity != null) {
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), netherChestBlockEntity.getKey().copy());
+                world.updateComparators(pos, this);
+            }
+            super.onStateReplaced(state, world, pos, newState, moved);
+        }
     }
 
     @Override
@@ -170,12 +179,14 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(world);
-        return netherChestInventory == null ? 0 : netherChestInventory.getComparatorOutput();
+        return world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).map(NetherChestBlockEntity::getComparatorOutput).orElse(0);
     }
 
     @Override
     public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos) {
-        return InventoryUtil.getNetherChestInventory(world);
+        if (NetherChest.getConfig().allowHoppers) {
+            return world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).map(NetherChestBlockEntity::getInventory).orElse(null);
+        }
+        return null;
     }
 }

@@ -1,133 +1,114 @@
 package dev.kir.netherchest.inventory;
 
-import dev.kir.netherchest.NetherChest;
-import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.SidedInventory;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.math.Direction;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-public class NetherChestInventory extends SimpleInventory implements SidedInventory {
-    private static final int SIZE = 27;
-    private static final int[] AVAILABLE_SLOTS = new int[SIZE];
-    private static final int[] EMPTY_SLOTS = new int[0];
-
-    private int comparatorOutput;
-    private final ConcurrentMap<PlayerEntity, NetherChestBlockEntity> activeBlockEntities = new ConcurrentHashMap<>();
+public class NetherChestInventory {
+    private final Map<Identifier, List<NetherChestInventoryChannel>> channelsById;
+    private final NetherChestInventoryChannel defaultChannel;
 
     public NetherChestInventory() {
-        super(SIZE);
+        this.channelsById = new ConcurrentHashMap<>();
+
+        this.defaultChannel = new NetherChestInventoryChannel(this, ItemStack.EMPTY);
+        this.channelsById.put(Registry.ITEM.getId(Items.AIR), List.of(this.defaultChannel));
     }
 
-    public void setActiveBlockEntity(PlayerEntity player, NetherChestBlockEntity blockEntity) {
-        this.activeBlockEntities.put(player, blockEntity);
-    }
-
-    @Override
-    public void readNbtList(NbtList tags) {
-        for (int i = 0; i < this.size(); ++i) {
-            this.setStack(i, ItemStack.EMPTY);
+    public NetherChestInventoryChannel channel(ItemStack key) {
+        if (key.isEmpty()) {
+            this.defaultChannel.use();
+            return this.defaultChannel;
         }
+
+        Identifier id = Registry.ITEM.getId(key.getItem());
+        List<NetherChestInventoryChannel> channelBucket = this.channelsById.computeIfAbsent(id, x -> new ArrayList<>());
+        for (NetherChestInventoryChannel channel : channelBucket) {
+            if (ItemStack.areEqual(channel.getKey(), key)) {
+                channel.use();
+                return channel;
+            }
+        }
+
+        NetherChestInventoryChannel channel = new NetherChestInventoryChannel(this, key);
+        channelBucket.add(channel);
+        channel.use();
+        return channel;
+    }
+
+    public boolean remove(NetherChestInventoryChannel channel) {
+        if (channel == this.defaultChannel) {
+            this.defaultChannel.clear();
+            return true;
+        }
+
+        Identifier id = Registry.ITEM.getId(channel.getKey().getItem());
+        List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
+        boolean removed = channelBucket != null && channelBucket.remove(channel);
+        if (removed && channelBucket.isEmpty()) {
+            this.channelsById.remove(id);
+        }
+        return removed;
+    }
+
+    public boolean remove(ItemStack key) {
+        if (key.isEmpty()) {
+            this.defaultChannel.clear();
+            return true;
+        }
+
+        Identifier id = Registry.ITEM.getId(key.getItem());
+        List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
+        boolean removed = channelBucket != null && channelBucket.removeIf(x -> ItemStack.areEqual(key, x.getKey()));
+        if (removed) {
+            this.channelsById.remove(id);
+        }
+        return removed;
+    }
+
+    public void readNbtList(NbtList tags) {
+        this.defaultChannel.readNbtList(new NbtList());
 
         for (int i = 0; i < tags.size(); ++i) {
             NbtCompound compoundTag = tags.getCompound(i);
-            int slot = compoundTag.getByte("Slot");
-            if (slot < this.size()) {
-                this.setStack(slot, ItemStack.fromNbt(compoundTag));
+            if (compoundTag.contains("channel", NbtElement.COMPOUND_TYPE)) {
+                ItemStack channelKey = ItemStack.fromNbt(compoundTag.getCompound("channel"));
+                NbtList items = compoundTag.getList("items", NbtElement.COMPOUND_TYPE);
+                if (channelKey.isEmpty()) {
+                    this.defaultChannel.readNbtList(items);
+                } else {
+                    NetherChestInventoryChannel channel = new NetherChestInventoryChannel(this, channelKey);
+                    channel.readNbtList(items);
+                    this.channelsById.computeIfAbsent(Registry.ITEM.getId(channelKey.getItem()), x -> new ArrayList<>()).add(channel);
+                }
+            } else {
+                int slot = compoundTag.getByte("Slot");
+                if (slot < this.defaultChannel.size()) {
+                    this.defaultChannel.setStack(slot, ItemStack.fromNbt(compoundTag));
+                }
             }
         }
-
-        this.markDirty();
     }
 
-    @Override
     public NbtList toNbtList() {
         NbtList listTag = new NbtList();
-
-        for (int i = 0; i < this.size(); ++i) {
-            ItemStack itemStack = this.getStack(i);
-            if (!itemStack.isEmpty()) {
-                NbtCompound compoundTag = new NbtCompound();
-                compoundTag.putByte("Slot", (byte)i);
-                itemStack.writeNbt(compoundTag);
-                listTag.add(compoundTag);
+        for (NetherChestInventoryChannel channel : (Iterable<NetherChestInventoryChannel>)this.channelsById.values().stream().flatMap(Collection::stream)::iterator) {
+            if (channel.isEmpty()) {
+                continue;
             }
-        }
 
+            NbtCompound compoundTag = new NbtCompound();
+            compoundTag.put("channel", channel.getKey().writeNbt(new NbtCompound()));
+            compoundTag.put("items", channel.toNbtList());
+            listTag.add(compoundTag);
+        }
         return listTag;
-    }
-
-    @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        NetherChestBlockEntity netherChestBlockEntity = this.activeBlockEntities.getOrDefault(player, null);
-        if (netherChestBlockEntity == null) {
-            return false;
-        }
-
-        return netherChestBlockEntity.canPlayerUse(player) && super.canPlayerUse(player);
-    }
-
-    @Override
-    public void onOpen(PlayerEntity player) {
-        NetherChestBlockEntity netherChestBlockEntity = this.activeBlockEntities.getOrDefault(player, null);
-        if (netherChestBlockEntity != null) {
-            netherChestBlockEntity.onOpen(player);
-        }
-
-        super.onOpen(player);
-    }
-
-    @Override
-    public void onClose(PlayerEntity player) {
-        NetherChestBlockEntity netherChestBlockEntity = this.activeBlockEntities.getOrDefault(player, null);
-        if (netherChestBlockEntity != null) {
-            netherChestBlockEntity.onClose(player);
-        }
-
-        super.onClose(player);
-        this.activeBlockEntities.remove(player);
-    }
-
-    @Override
-    public void markDirty() {
-        super.markDirty();
-        this.comparatorOutput = ScreenHandler.calculateComparatorOutput(this);
-    }
-
-    public int getComparatorOutput() {
-        return this.comparatorOutput;
-    }
-
-    public boolean isActiveBlockEntity(PlayerEntity player, NetherChestBlockEntity blockEntity) {
-        return activeBlockEntities.getOrDefault(player, null) == blockEntity;
-    }
-
-    @Override
-    public int[] getAvailableSlots(Direction side) {
-        return NetherChest.getConfig().allowHoppers ? AVAILABLE_SLOTS : EMPTY_SLOTS;
-    }
-
-    @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return NetherChest.getConfig().allowHoppers;
-    }
-
-    @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return NetherChest.getConfig().allowHoppers;
-    }
-
-    static {
-        for (int i = 0; i < SIZE; ++i) {
-            AVAILABLE_SLOTS[i] = i;
-        }
     }
 }

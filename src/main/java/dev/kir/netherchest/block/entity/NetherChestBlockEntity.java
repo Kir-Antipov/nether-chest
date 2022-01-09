@@ -1,8 +1,9 @@
 package dev.kir.netherchest.block.entity;
 
 import dev.kir.netherchest.block.NetherChestBlocks;
+import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventory;
-import dev.kir.netherchest.inventory.NetherChestInventoryHolder;
+import dev.kir.netherchest.screen.NetherChestScreenHandler;
 import dev.kir.netherchest.util.InventoryUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -11,12 +12,15 @@ import net.minecraft.block.entity.ViewerCountManager;
 import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProperties;
+import org.jetbrains.annotations.Nullable;
 
 public class NetherChestBlockEntity extends BlockEntity implements ChestAnimationProgress {
     private static final int VIEWER_COUNT_UPDATE_EVENT = 1;
@@ -26,12 +30,16 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     private int syncedOutput = -1;
     private boolean inventoryDirty = true;
     private InventoryChangedListener listener;
+    private ItemStack key;
+    private ChanneledNetherChestInventory inventory;
     private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
     private final ViewerCountManager stateManager = new ViewerCountManager() {
+        @Override
         protected void onContainerOpen(World world, BlockPos pos, BlockState state) {
             this.playSound(world, pos, OPEN_SOUND);
         }
 
+        @Override
         protected void onContainerClose(World world, BlockPos pos, BlockState state) {
             this.playSound(world, pos, CLOSE_SOUND);
         }
@@ -43,36 +51,37 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
             world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, sound, SoundCategory.BLOCKS, VOLUME, pitch);
         }
 
+        @Override
         protected void onViewerCountUpdate(World world, BlockPos pos, BlockState state, int oldViewerCount, int newViewerCount) {
             world.addSyncedBlockEvent(NetherChestBlockEntity.this.pos, NetherChestBlocks.NETHER_CHEST, VIEWER_COUNT_UPDATE_EVENT, newViewerCount);
         }
 
+        @Override
         protected boolean isPlayerViewing(PlayerEntity player) {
-            if (NetherChestBlockEntity.this.world.isClient) {
-                return false;
-            }
-
-            WorldProperties properties = world.getServer().getOverworld().getLevelProperties();
-            if (!(properties instanceof NetherChestInventoryHolder)) {
-                return false;
-            }
-
-            NetherChestInventory netherChestInventory = ((NetherChestInventoryHolder)properties).getNetherChestInventory();
-            if (netherChestInventory == null) {
-                return false;
-            }
-
-            return netherChestInventory.isActiveBlockEntity(player,NetherChestBlockEntity.this);
+            return player.currentScreenHandler instanceof NetherChestScreenHandler && ((NetherChestScreenHandler)player.currentScreenHandler).getInventory() == NetherChestBlockEntity.this.getInventory();
         }
     };
 
     public NetherChestBlockEntity(BlockPos pos, BlockState state) {
         super(NetherChestBlockEntities.NETHER_CHEST, pos, state);
-        this.setupListener();
+        this.key = ItemStack.EMPTY;
+    }
+
+    public @Nullable ChanneledNetherChestInventory getInventory() {
+        return this.inventory;
+    }
+
+    public ItemStack getKey() {
+        return this.inventory == null ? this.key : this.inventory.getKey();
+    }
+
+    public int getComparatorOutput() {
+        return this.inventory == null ? 0 : this.inventory.getComparatorOutput();
     }
 
     public static void serverTick(World world, BlockPos pos, BlockState state, NetherChestBlockEntity blockEntity) {
-        if (blockEntity.inventoryDirty) {
+        blockEntity.refreshInventory();
+        if (blockEntity.inventory != null && blockEntity.inventoryDirty) {
             world.updateComparators(pos, state.getBlock());
             blockEntity.inventoryDirty = false;
         }
@@ -83,6 +92,17 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
         blockEntity.lidAnimator.step();
     }
 
+    private void refreshInventory() {
+        if (this.inventory == null && this.key != null && this.world != null) {
+            NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
+            if (netherChestInventory != null) {
+                this.inventory = new ChanneledNetherChestInventory(netherChestInventory, this.key);
+                this.setupListener();
+            }
+        }
+    }
+
+    @Override
     public boolean onSyncedBlockEvent(int type, int data) {
         if (type == VIEWER_COUNT_UPDATE_EVENT) {
             this.lidAnimator.setOpen(data > 0);
@@ -96,24 +116,20 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
         if (!this.removed && !player.isSpectator()) {
             this.stateManager.openContainer(player, this.getWorld(), this.getPos(), this.getCachedState());
         }
-
     }
 
     public void onClose(PlayerEntity player) {
         if (!this.removed && !player.isSpectator()) {
             this.stateManager.closeContainer(player, this.getWorld(), this.getPos(), this.getCachedState());
         }
-
     }
 
     public boolean canPlayerUse(PlayerEntity player) {
         if (this.world.getBlockEntity(this.pos) == this) {
             final double MAX_DISTANCE = 64;
             double distance = player.squaredDistanceTo((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D);
-
             return distance <= MAX_DISTANCE;
         }
-
         return false;
     }
 
@@ -127,35 +143,52 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     public void markRemoved() {
         super.markRemoved();
         this.removeListener();
+        if (this.inventory != null) {
+            this.inventory.markRemoved();
+        }
     }
 
     @Override
     public void cancelRemoval() {
         super.cancelRemoval();
         this.inventoryDirty = true;
+        if (this.inventory != null) {
+            this.inventory.cancelRemoval();
+        }
         this.setupListener();
     }
 
+    @Override
+    public void readNbt(NbtCompound nbt) {
+        this.inventory = null;
+        this.key = nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
+        this.refreshInventory();
+    }
+
+    @Override
+    protected void writeNbt(NbtCompound nbt) {
+        nbt.put("key", this.getKey().writeNbt(new NbtCompound()));
+    }
+
     private void setupListener() {
-        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
-        if (this.listener == null && netherChestInventory != null) {
+        if (this.listener == null && this.inventory != null) {
             this.listener = x -> {
-                int output = ((NetherChestInventory)x).getComparatorOutput();
+                int output = ((ChanneledNetherChestInventory)x).getComparatorOutput();
                 this.inventoryDirty |= this.syncedOutput != output;
                 this.syncedOutput = output;
             };
-            netherChestInventory.addListener(listener);
+            this.inventory.addListener(this.listener);
         }
     }
 
     private void removeListener() {
-        NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
-        if (this.listener != null && netherChestInventory != null) {
-            netherChestInventory.removeListener(listener);
+        if (this.listener != null && this.inventory != null) {
+            this.inventory.removeListener(this.listener);
             this.listener = null;
         }
     }
 
+    @Override
     public float getAnimationProgress(float tickDelta) {
         return this.lidAnimator.getProgress(tickDelta);
     }

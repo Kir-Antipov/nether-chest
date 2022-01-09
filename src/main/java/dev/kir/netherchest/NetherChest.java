@@ -5,6 +5,8 @@ import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.client.render.NetherChestRenderers;
 import dev.kir.netherchest.config.NetherChestConfig;
 import dev.kir.netherchest.item.NetherChestItems;
+import dev.kir.netherchest.screen.NetherChestScreenHandlerTypes;
+import dev.kir.netherchest.screen.client.NetherChestScreens;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
@@ -29,12 +31,14 @@ public class NetherChest implements ModInitializer, ClientModInitializer {
         AutoConfig.register(NetherChestConfig.class, GsonConfigSerializer::new);
         NetherChestBlocks.init();
         NetherChestItems.init();
+        NetherChestScreenHandlerTypes.init();
         NetherChestBlockEntities.init();
     }
 
     @Override
     @Environment(EnvType.CLIENT)
     public void onInitializeClient() {
+        NetherChestScreens.initClient();
         NetherChestRenderers.initClient();
     }
 }
