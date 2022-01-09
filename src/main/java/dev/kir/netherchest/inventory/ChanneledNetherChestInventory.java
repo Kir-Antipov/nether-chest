@@ -161,7 +161,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return side == Direction.UP || side == Direction.DOWN ? VERTICAL_SLOTS : HORIZONTAL_SLOTS;
+        return side == Direction.UP || side == Direction.DOWN || !NetherChest.getConfig().enableMultichannelMode ? VERTICAL_SLOTS : HORIZONTAL_SLOTS;
     }
 
     public int getComparatorOutput() {

@@ -11,5 +11,8 @@
   "text.autoconfig.netherchest.option.allowInsertion.@Tooltip[1]": "to pump items into the nether chest's inventory",
   "text.autoconfig.netherchest.option.allowExtraction": "Allow extraction",
   "text.autoconfig.netherchest.option.allowExtraction.@Tooltip[0]": "If this option is enabled, hoppers will be able",
-  "text.autoconfig.netherchest.option.allowExtraction.@Tooltip[1]": "to pump items out of the nether chest's inventory"
+  "text.autoconfig.netherchest.option.allowExtraction.@Tooltip[1]": "to pump items out of the nether chest's inventory",
+  "text.autoconfig.netherchest.option.enableMultichannelMode": "Enable multichannel mode",
+  "text.autoconfig.netherchest.option.enableMultichannelMode.@Tooltip[0]": "If this option is enabled, nether chests",
+  "text.autoconfig.netherchest.option.enableMultichannelMode.@Tooltip[1]": "can be locked to a specific channel"
 }

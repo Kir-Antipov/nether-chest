@@ -1,5 +1,6 @@
 package dev.kir.netherchest.block.entity;
 
+import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.NetherChestBlocks;
 import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventory;
@@ -15,6 +16,7 @@ import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -58,7 +60,10 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
         @Override
         protected boolean isPlayerViewing(PlayerEntity player) {
-            return player.currentScreenHandler instanceof NetherChestScreenHandler && ((NetherChestScreenHandler)player.currentScreenHandler).getInventory() == NetherChestBlockEntity.this.getInventory();
+            return (
+                player.currentScreenHandler instanceof NetherChestScreenHandler && ((NetherChestScreenHandler)player.currentScreenHandler).getInventory() == NetherChestBlockEntity.this.getInventory() ||
+                player.currentScreenHandler instanceof GenericContainerScreenHandler && ((GenericContainerScreenHandler)player.currentScreenHandler).getInventory() == NetherChestBlockEntity.this.getInventory()
+            );
         }
     };
 
@@ -161,7 +166,7 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
     @Override
     public void readNbt(NbtCompound nbt) {
         this.inventory = null;
-        this.key = nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
+        this.key = NetherChest.getConfig().enableMultichannelMode && nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
         this.refreshInventory();
     }
 

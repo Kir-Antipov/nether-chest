@@ -15,4 +15,8 @@ public class NetherChestConfig implements ConfigData {
 
     @ConfigEntry.Gui.Tooltip(count = 2)
     public boolean allowExtraction = true;
+
+    @ConfigEntry.Gui.RequiresRestart
+    @ConfigEntry.Gui.Tooltip(count = 2)
+    public boolean enableMultichannelMode = true;
 }

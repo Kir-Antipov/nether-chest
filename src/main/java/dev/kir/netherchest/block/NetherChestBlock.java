@@ -4,9 +4,7 @@ import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
 import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
-import dev.kir.netherchest.inventory.NetherChestInventory;
 import dev.kir.netherchest.screen.NetherChestScreenHandler;
-import dev.kir.netherchest.util.InventoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
@@ -22,6 +20,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -93,7 +92,11 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
         }
 
         inventory.setActiveBlockEntity(netherChestBlockEntity);
-        player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new NetherChestScreenHandler(i, playerInventory, inventory), CONTAINER_NAME));
+        if (NetherChest.getConfig().enableMultichannelMode) {
+            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new NetherChestScreenHandler(i, playerInventory, inventory), CONTAINER_NAME));
+        } else {
+            player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(i, playerInventory, inventory), CONTAINER_NAME));
+        }
         PiglinBrain.onGuardedBlockInteracted(player, true);
         return ActionResult.CONSUME;
     }
