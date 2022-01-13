@@ -18,22 +18,20 @@ public class ChanneledNetherChestInventory implements SidedInventory {
     private static final int[] VERTICAL_SLOTS = new int[NetherChestInventoryChannel.SIZE];
     public static final int SIZE = NetherChestInventoryChannel.SIZE + 1;
 
+    private ItemStack key;
     private NetherChestInventoryChannel activeChannel;
     private NetherChestBlockEntity activeBlockEntity;
     private InventoryChangedListener channelListener;
     private List<InventoryChangedListener> listeners;
 
     public ChanneledNetherChestInventory(NetherChestInventory netherChestInventory, ItemStack key) {
-        this(netherChestInventory.channel(key));
-    }
-
-    public ChanneledNetherChestInventory(NetherChestInventoryChannel channel) {
-        this.activeChannel = channel;
+        this.activeChannel = netherChestInventory.channel(key);
+        this.key = this.activeChannel.getKey().copy();
         this.setupListener();
     }
 
     public ItemStack getKey() {
-        return this.activeChannel.getKey();
+        return this.key;
     }
 
     public NetherChestInventoryChannel getActiveChannel() {
@@ -49,13 +47,14 @@ public class ChanneledNetherChestInventory implements SidedInventory {
     }
 
     public void changeChannel(ItemStack key) {
-        if (ItemStack.areEqual(key, this.getKey())) {
+        if (ItemStack.areEqual(key, this.activeChannel.getKey())) {
             return;
         }
 
         this.removeListener();
         this.activeChannel.dispose();
         this.activeChannel = this.activeChannel.getNetherChestInventory().channel(key);
+        this.key = this.activeChannel.getKey().copy();
         this.setupListener();
         this.markDirty();
     }
@@ -67,21 +66,20 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public boolean isEmpty() {
-        return this.getKey().isEmpty() && this.activeChannel.isEmpty();
+        return this.key.isEmpty() && this.activeChannel.isEmpty();
     }
 
     @Override
     public ItemStack getStack(int slot) {
-        return slot == KEY_SLOT ? this.getKey().copy() : this.activeChannel.getStack(slot);
+        return slot == KEY_SLOT ? this.key : this.activeChannel.getStack(slot);
     }
 
     @Override
     public ItemStack removeStack(int slot, int amount) {
         if (slot == KEY_SLOT) {
-            ItemStack clonedKey = this.getKey().copy();
-            ItemStack keyPart = clonedKey.split(amount);
+            ItemStack keyPart = this.key.split(amount);
             if (!keyPart.isEmpty()) {
-                this.changeChannel(clonedKey);
+                this.changeChannel(this.key);
             }
             return keyPart;
         }
@@ -91,7 +89,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
     @Override
     public ItemStack removeStack(int slot) {
         if (slot == KEY_SLOT) {
-            ItemStack currentKey = this.getKey();
+            ItemStack currentKey = this.key;
             this.changeChannel(ItemStack.EMPTY);
             return currentKey;
         }
@@ -109,6 +107,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public void markDirty() {
+        this.changeChannel(this.key);
         if (this.listeners == null) {
             return;
         }
