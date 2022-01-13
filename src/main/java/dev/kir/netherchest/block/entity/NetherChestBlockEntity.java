@@ -86,9 +86,17 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     public static void serverTick(World world, BlockPos pos, BlockState state, NetherChestBlockEntity blockEntity) {
         blockEntity.refreshInventory();
-        if (blockEntity.inventory != null && blockEntity.inventoryDirty) {
-            world.updateComparators(pos, state.getBlock());
+        if (blockEntity.inventory == null) {
+            return;
+        }
+
+        if (blockEntity.key != blockEntity.inventory.getKey()) {
+            blockEntity.key = blockEntity.inventory.getKey();
             blockEntity.inventoryDirty = false;
+            blockEntity.markDirty();
+        } else if (blockEntity.inventoryDirty) {
+            blockEntity.inventoryDirty = false;
+            world.updateComparators(pos, state.getBlock());
         }
     }
 
@@ -165,9 +173,7 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        this.inventory = null;
         this.key = NetherChest.getConfig().enableMultichannelMode && nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
-        this.refreshInventory();
     }
 
     @Override
