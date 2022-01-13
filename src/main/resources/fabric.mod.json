@@ -9,7 +9,7 @@
   ],
   "contact": {
     "website": "https://github.com/Kir-Antipov/nether-chest",
-    "repo": "https://github.com/Kir-Antipov/nether-chest",
+    "sources": "https://github.com/Kir-Antipov/nether-chest",
     "issues": "https://github.com/Kir-Antipov/nether-chest/issues/new/choose"
   },
   "license": "MIT",
@@ -17,20 +17,33 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.kirantipov.mods.netherchest.NetherChest"
+      "dev.kir.netherchest.NetherChest"
     ],
     "client": [
-      "me.kirantipov.mods.netherchest.NetherChest"
+      "dev.kir.netherchest.NetherChest"
+    ],
+    "modmenu": [
+      "dev.kir.netherchest.compat.modmenu.ModMenuCompat"
     ]
   },
-  "accessWidener": "netherchest.accesswidener",
   "mixins": [
     "netherchest.mixins.json"
   ],
+  "custom": {
+    "modmanager": {
+      "modrinth": "okOUGirG",
+      "curseforge": 494585
+    }
+  },
   "depends": {
     "fabric": "*",
-    "fabricloader": "${fabric}",
-    "minecraft": "${minecraft}",
-    "java": ">=16"
+    "fabricloader": "*"
+  },
+  "suggests": {
+    "modmenu": "${modmenu}",
+    "minecraft": "${minecraft}"
+  },
+  "includes": {
+    "cloth-config": "${cloth_config}"
   }
 }
