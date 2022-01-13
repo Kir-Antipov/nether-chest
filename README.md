@@ -25,12 +25,18 @@ This mod adds a single block to the game - the nether chest. It acts pretty much
 
 This crafting recipe may seem a little bit expensive, but from a balancing point of view, everything is more than justified:
 
- - This mod is intended for multiplayer. The Wither is an extremely weak enemy for several players even at the maximum difficulty level. So getting a couple of extra nether stars won't be difficult task for you and your friends
- - The nether chest is an "endgame" block. If you can spend a nether star to craft a chest, then trite time-saving isn't cheating. However, in the early game stages, exchanging items between players that are separated by thousands of blocks may be overpowered
+ - The Wither is an extremely weak enemy even at the maximum difficulty level. So getting a couple of extra nether stars won't be a difficult task for you.
+ - The nether chest is an "endgame" block. If you can spend a nether star to craft a chest, then trite time-saving isn't cheating. However, in the early game stages, exchanging items between players that are separated by thousands of blocks may be overpowered.
 
 **NOTE:** nether chests should be silk touched if you don't want to lose your nether stars :)
 
 If you play on peaceful (or just aren't brave enough to fight the Wither), you can use [this datapack](media/simplified_nether_chest_recipe_datapack.zip) (it will swap the nether star with an eye of ender). Please read [this article](https://minecraft.fandom.com/wiki/Tutorials/Installing_a_data_pack), if you don't know how to do it.
+
+### Multichannel Mode
+
+![Multichannel Mode](media/multichannel.png)
+
+If the multichannel mode is enabled, each nether chest gets one extra slot that can be used to lock a chest to a specific channel with its own unique inventory.
 
 ### Redstone Integration
 
@@ -43,6 +49,9 @@ As you can see, nether chests are compatible with hoppers and comparators. Howev
 | Name | Description | Default value |
 | ---- | ----------- | ------------- |
 | `allowHoppers` | If this option is enabled, hoppers will be able to access the nether chest's inventory | `false` |
+| `allowInsertion` | If this option is enabled, hoppers will be able to pump items into the nether chest's inventory | `true` |
+| `allowExtraction` | If this option is enabled, hoppers will be able to pump items out of the nether chest's inventory | `true` |
+| `enableMultichannelMode` | If this option is enabled, nether chests can be locked to a specific channel | `true` |
 
 ----
 
