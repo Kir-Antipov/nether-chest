@@ -160,7 +160,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return side == Direction.UP || side == Direction.DOWN || !NetherChest.getConfig().enableMultichannelMode ? VERTICAL_SLOTS : HORIZONTAL_SLOTS;
+        return side == Direction.UP || side == Direction.DOWN || !NetherChest.getConfig().enableMultichannelMode() ? VERTICAL_SLOTS : HORIZONTAL_SLOTS;
     }
 
     public int getComparatorOutput() {
@@ -169,12 +169,12 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return NetherChest.getConfig().allowInsertion;
+        return NetherChest.getConfig().allowInsertion();
     }
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return NetherChest.getConfig().allowExtraction;
+        return NetherChest.getConfig().allowExtraction();
     }
 
     public void markRemoved() {

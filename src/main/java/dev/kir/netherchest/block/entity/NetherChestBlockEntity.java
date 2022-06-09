@@ -173,7 +173,7 @@ public class NetherChestBlockEntity extends BlockEntity implements ChestAnimatio
 
     @Override
     public void readNbt(NbtCompound nbt) {
-        this.key = NetherChest.getConfig().enableMultichannelMode && nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
+        this.key = NetherChest.getConfig().enableMultichannelMode() && nbt.contains("key", NbtElement.COMPOUND_TYPE) ? ItemStack.fromNbt(nbt.getCompound("key")) : ItemStack.EMPTY;
     }
 
     @Override

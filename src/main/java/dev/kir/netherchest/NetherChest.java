@@ -7,8 +7,6 @@ import dev.kir.netherchest.config.NetherChestConfig;
 import dev.kir.netherchest.item.NetherChestItems;
 import dev.kir.netherchest.screen.NetherChestScreenHandlerTypes;
 import dev.kir.netherchest.screen.client.NetherChestScreens;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -23,12 +21,11 @@ public class NetherChest implements ModInitializer, ClientModInitializer {
     }
 
     public static NetherChestConfig getConfig() {
-        return AutoConfig.getConfigHolder(NetherChestConfig.class).getConfig();
+        return NetherChestConfig.DEFAULT;
     }
 
     @Override
     public void onInitialize() {
-        AutoConfig.register(NetherChestConfig.class, GsonConfigSerializer::new);
         NetherChestBlocks.init();
         NetherChestItems.init();
         NetherChestScreenHandlerTypes.init();

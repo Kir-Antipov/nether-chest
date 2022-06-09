@@ -41,9 +41,7 @@
   },
   "suggests": {
     "modmenu": "${modmenu}",
+    "cloth-config": "${cloth_config}",
     "minecraft": "${minecraft}"
-  },
-  "includes": {
-    "cloth-config": "${cloth_config}"
   }
 }

@@ -92,7 +92,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
         }
 
         inventory.setActiveBlockEntity(netherChestBlockEntity);
-        if (NetherChest.getConfig().enableMultichannelMode) {
+        if (NetherChest.getConfig().enableMultichannelMode()) {
             player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new NetherChestScreenHandler(i, playerInventory, inventory), CONTAINER_NAME));
         } else {
             player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> GenericContainerScreenHandler.createGeneric9x3(i, playerInventory, inventory), CONTAINER_NAME));
@@ -187,7 +187,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos) {
-        if (NetherChest.getConfig().allowHoppers) {
+        if (NetherChest.getConfig().allowHoppers()) {
             return world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).map(NetherChestBlockEntity::getInventory).orElse(null);
         }
         return null;

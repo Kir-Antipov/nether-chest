@@ -1,22 +1,24 @@
 package dev.kir.netherchest.config;
 
-import dev.kir.netherchest.NetherChest;
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import dev.kir.netherchest.compat.cloth.NetherChestClothConfig;
+import net.fabricmc.loader.api.FabricLoader;
 
-@Config(name = NetherChest.MOD_ID)
-public class NetherChestConfig implements ConfigData {
-    @ConfigEntry.Gui.Tooltip(count = 2)
-    public boolean allowHoppers = false;
+public interface NetherChestConfig {
+    NetherChestConfig DEFAULT = FabricLoader.getInstance().isModLoaded("cloth-config") ? NetherChestClothConfig.getInstance() : new NetherChestConfig() { };
 
-    @ConfigEntry.Gui.Tooltip(count = 2)
-    public boolean allowInsertion = true;
+    default boolean allowHoppers() {
+        return false;
+    }
 
-    @ConfigEntry.Gui.Tooltip(count = 2)
-    public boolean allowExtraction = true;
+    default boolean allowInsertion() {
+        return true;
+    }
 
-    @ConfigEntry.Gui.RequiresRestart
-    @ConfigEntry.Gui.Tooltip(count = 2)
-    public boolean enableMultichannelMode = true;
+    default boolean allowExtraction() {
+        return true;
+    }
+
+    default boolean enableMultichannelMode() {
+        return true;
+    }
 }
