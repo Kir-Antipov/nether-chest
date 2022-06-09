@@ -28,17 +28,15 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.*;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-
-import java.util.Random;
 
 @SuppressWarnings("deprecation")
 public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity> implements Waterloggable, InventoryProvider {
@@ -47,7 +45,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     protected static final VoxelShape SHAPE = Block.createCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
 
-    private static final Text CONTAINER_NAME = new TranslatableText("container.netherchest");
+    private static final Text CONTAINER_NAME = Text.translatable("container.netherchest");
 
 
     public NetherChestBlock(Settings settings) {

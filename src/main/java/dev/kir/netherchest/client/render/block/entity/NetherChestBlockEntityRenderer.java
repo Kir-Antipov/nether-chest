@@ -11,7 +11,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.DoubleBlockProperties;
 import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.client.block.ChestAnimationProgress;
+import net.minecraft.block.entity.LidOpenable;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -82,7 +82,7 @@ public class NetherChestBlockEntityRenderer extends ChestBlockEntityRenderer<Net
         return vertexConsumers.getBuffer(RenderLayer.getEntityCutout(NETHER_CHEST_SPRITE_ID));
     }
 
-    private static float computeOpenFactor(DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> propertySource, ChestAnimationProgress chestBlockEntity, float tickDelta) {
+    private static float computeOpenFactor(DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> propertySource, LidOpenable chestBlockEntity, float tickDelta) {
         float factor = 1.0F - propertySource.apply(ChestBlock.getAnimationProgressRetriever(chestBlockEntity)).get(tickDelta);
         return 1.0F - factor * factor * factor;
     }

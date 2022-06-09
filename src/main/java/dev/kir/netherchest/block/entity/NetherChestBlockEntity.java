@@ -9,8 +9,8 @@ import dev.kir.netherchest.util.InventoryUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestLidAnimator;
+import net.minecraft.block.entity.LidOpenable;
 import net.minecraft.block.entity.ViewerCountManager;
-import net.minecraft.client.block.ChestAnimationProgress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class NetherChestBlockEntity extends BlockEntity implements ChestAnimationProgress {
+public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     private static final int VIEWER_COUNT_UPDATE_EVENT = 1;
     private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
     private static final SoundEvent CLOSE_SOUND = SoundEvents.BLOCK_ENDER_CHEST_CLOSE;
