@@ -2,6 +2,7 @@ package dev.kir.netherchest.inventory;
 
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
+import dev.kir.netherchest.config.NetherChestConfig;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.inventory.SidedInventory;
@@ -169,7 +170,8 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
-        return NetherChest.getConfig().allowInsertion();
+        NetherChestConfig config = NetherChest.getConfig();
+        return config.allowInsertion() && (slot != KEY_SLOT || config.isValidChannel(stack));
     }
 
     @Override

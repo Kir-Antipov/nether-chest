@@ -52,6 +52,10 @@ As you can see, nether chests are compatible with hoppers and comparators. Howev
 | `allowInsertion` | If this option is enabled, hoppers will be able to pump items into the nether chest's inventory | `true` |
 | `allowExtraction` | If this option is enabled, hoppers will be able to pump items out of the nether chest's inventory | `true` |
 | `enableMultichannelMode` | If this option is enabled, nether chests can be locked to a specific channel | `true` |
+| `ignoreNbtInMultichannelMode` | If this option is enabled, channel keys are no longer obligated to have the same NBT in order to be considered equal | `false` |
+| `ignoreCountInMultichannelMode` | If this option is enabled, channel keys are no longer obligated to have the same stack size in order to be considered equal | `false` |
+| `channelBlacklist` | Items whose IDs are listed in this field are banned from becoming channel keys | `[]` |
+| `channelWhitelist` | Only those items whose IDs are listed in this field can be treated as channel keys | `[]` |
 
 ----
 

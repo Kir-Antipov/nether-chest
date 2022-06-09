@@ -1,5 +1,7 @@
 package dev.kir.netherchest.inventory;
 
+import dev.kir.netherchest.NetherChest;
+import dev.kir.netherchest.config.NetherChestConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -23,7 +25,8 @@ public class NetherChestInventory {
     }
 
     public NetherChestInventoryChannel channel(ItemStack key) {
-        if (key.isEmpty()) {
+        NetherChestConfig config = NetherChest.getConfig();
+        if (key.isEmpty() || !config.isValidChannel(key)) {
             this.defaultChannel.use();
             return this.defaultChannel;
         }
@@ -31,9 +34,9 @@ public class NetherChestInventory {
         Identifier id = Registry.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.computeIfAbsent(id, x -> new ArrayList<>());
         for (NetherChestInventoryChannel channel : channelBucket) {
-            if (ItemStack.areEqual(channel.getKey(), key)) {
+            if (channel.isOf(key)) {
                 channel.use();
-                return channel;
+                return channel.with(key);
             }
         }
 
@@ -59,14 +62,15 @@ public class NetherChestInventory {
     }
 
     public boolean remove(ItemStack key) {
-        if (key.isEmpty()) {
+        NetherChestConfig config = NetherChest.getConfig();
+        if (key.isEmpty() || !config.isValidChannel(key)) {
             this.defaultChannel.clear();
             return true;
         }
 
         Identifier id = Registry.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
-        boolean removed = channelBucket != null && channelBucket.removeIf(x -> ItemStack.areEqual(key, x.getKey()));
+        boolean removed = channelBucket != null && channelBucket.removeIf(x -> x.isOf(key));
         if (removed) {
             this.channelsById.remove(id);
         }
@@ -98,9 +102,10 @@ public class NetherChestInventory {
     }
 
     public NbtList toNbtList() {
+        NetherChestConfig config = NetherChest.getConfig();
         NbtList listTag = new NbtList();
         for (NetherChestInventoryChannel channel : (Iterable<NetherChestInventoryChannel>)this.channelsById.values().stream().flatMap(Collection::stream)::iterator) {
-            if (channel.isEmpty()) {
+            if (channel.isEmpty() || !config.isValidChannel(channel.getKey())) {
                 continue;
             }
 

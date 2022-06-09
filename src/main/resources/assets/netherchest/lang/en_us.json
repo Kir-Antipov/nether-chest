@@ -14,5 +14,17 @@
   "text.autoconfig.netherchest.option.allowExtraction.@Tooltip[1]": "to pump items out of the nether chest's inventory",
   "text.autoconfig.netherchest.option.enableMultichannelMode": "Enable multichannel mode",
   "text.autoconfig.netherchest.option.enableMultichannelMode.@Tooltip[0]": "If this option is enabled, nether chests",
-  "text.autoconfig.netherchest.option.enableMultichannelMode.@Tooltip[1]": "can be locked to a specific channel"
+  "text.autoconfig.netherchest.option.enableMultichannelMode.@Tooltip[1]": "can be locked to a specific channel",
+  "text.autoconfig.netherchest.option.ignoreNbtInMultichannelMode": "Ignore NBT in multichannel mode",
+  "text.autoconfig.netherchest.option.ignoreNbtInMultichannelMode.@Tooltip[0]": "If this option is enabled, channel keys are no longer obligated",
+  "text.autoconfig.netherchest.option.ignoreNbtInMultichannelMode.@Tooltip[1]": "to have the same NBT in order to be considered equal",
+  "text.autoconfig.netherchest.option.ignoreCountInMultichannelMode": "Ignore stack size in multichannel mode",
+  "text.autoconfig.netherchest.option.ignoreCountInMultichannelMode.@Tooltip[0]": "If this option is enabled, channel keys are no longer obligated",
+  "text.autoconfig.netherchest.option.ignoreCountInMultichannelMode.@Tooltip[1]": "to have the same stack size in order to be considered equal",
+  "text.autoconfig.netherchest.option.channelBlacklist": "Channel blacklist",
+  "text.autoconfig.netherchest.option.channelBlacklist.@Tooltip[0]": "Items whose IDs are listed in this field",
+  "text.autoconfig.netherchest.option.channelBlacklist.@Tooltip[1]": "are banned from becoming channel keys",
+  "text.autoconfig.netherchest.option.channelWhitelist": "Channel whitelist",
+  "text.autoconfig.netherchest.option.channelWhitelist.@Tooltip[0]": "Only those items whose IDs are listed in this field",
+  "text.autoconfig.netherchest.option.channelWhitelist.@Tooltip[1]": "can be treated as channel keys"
 }

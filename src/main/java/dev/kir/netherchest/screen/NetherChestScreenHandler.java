@@ -30,7 +30,11 @@ public class NetherChestScreenHandler extends ScreenHandler {
                 this.addSlot(new Slot(inventory, j + i * COLUMNS, 8 + j * 18, 18 + i * 18));
             }
         }
-        this.addSlot(new Slot(inventory, INVENTORY_SIZE - 1, 188, 18));
+        if (isClient(playerInventory)) {
+            this.addSlot(new Slot(inventory, INVENTORY_SIZE - 1, 188, 18));
+        } else {
+            this.addSlot(new NetherChestChannelSlot(inventory, INVENTORY_SIZE - 1, 188, 18));
+        }
 
         for (int i = 0; i < ROWS; ++i) {
             for(int j = 0; j < COLUMNS; ++j) {
@@ -79,5 +83,13 @@ public class NetherChestScreenHandler extends ScreenHandler {
     public void close(PlayerEntity player) {
         super.close(player);
         this.inventory.onClose(player);
+    }
+
+    private static boolean isClient(PlayerInventory playerInventory) {
+        return (
+            playerInventory.player == null ||
+            playerInventory.player.getWorld() == null ||
+            playerInventory.player.getWorld().isClient
+        );
     }
 }

@@ -15,13 +15,14 @@ import net.minecraft.util.Identifier;
 
 public class NetherChest implements ModInitializer, ClientModInitializer {
     public static final String MOD_ID = "netherchest";
+    private static final NetherChestConfig CONFIG = NetherChestConfig.DEFAULT;
 
     public static Identifier locate(String location) {
         return new Identifier(MOD_ID, location);
     }
 
     public static NetherChestConfig getConfig() {
-        return NetherChestConfig.DEFAULT;
+        return CONFIG;
     }
 
     @Override
