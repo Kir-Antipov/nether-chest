@@ -12,7 +12,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.anti_ad.mc.ipn.api.IPNIgnore;
 
+@IPNIgnore
 @Environment(EnvType.CLIENT)
 public class NetherChestScreen extends HandledScreen<NetherChestScreenHandler> implements ScreenHandlerProvider<NetherChestScreenHandler> {
     private static final Identifier TEXTURE = NetherChest.locate("textures/gui/container/nether_chest.png");

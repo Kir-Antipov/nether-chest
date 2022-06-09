@@ -24,6 +24,13 @@ repositories {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/"
     }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 // To change the versions see the gradle.properties file
@@ -35,6 +42,7 @@ dependencies {
 
     modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
+    modCompileOnly "maven.modrinth:inventory-profiles-next:${project.ipn_version}"
 }
 
 processResources {
