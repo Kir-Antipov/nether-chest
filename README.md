@@ -4,7 +4,7 @@
 [![GitHub tag](https://img.shields.io/github/v/tag/Kir-Antipov/nether-chest.svg?cacheSeconds=3600&sort=date)](https://github.com/Kir-Antipov/nether-chest/releases/latest)
 [![GitHub build status](https://img.shields.io/github/actions/workflow/status/Kir-Antipov/nether-chest/build-artifacts.yml?branch=1.19.x/dev&cacheSeconds=3600)](https://github.com/Kir-Antipov/nether-chest/actions/workflows/build-artifacts.yml)
 [![Modrinth](https://img.shields.io/badge/dynamic/json?color=00AF5C&label=Modrinth&query=title&url=https://api.modrinth.com/v2/project/nether-chest&style=flat&cacheSeconds=3600&logo=modrinth)](https://modrinth.com/mod/nether-chest)
-[![CurseForge](https://img.shields.io/badge/dynamic/json?color=%23f16436&label=CurseForge&query=title&url=https%3A%2F%2Fapi.cfwidget.com%2F494585)](https://www.curseforge.com/minecraft/mc-mods/nether-chest-fabric)
+[![CurseForge](https://img.shields.io/badge/dynamic/json?color=%23f16436&label=CurseForge&query=title&url=https%3A%2F%2Fapi.cfwidget.com%2F494585&logo=curseforge)](https://www.curseforge.com/minecraft/mc-mods/nether-chest-fabric)
 [![GitHub license](https://img.shields.io/github/license/Kir-Antipov/nether-chest.svg?cacheSeconds=36000)](https://github.com/Kir-Antipov/nether-chest#readme)
 
 I like to think of the storage blocks presented in Minecraft as the different types of data storages that we meet in our everyday life:
