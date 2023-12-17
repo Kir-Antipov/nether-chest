@@ -30,7 +30,7 @@
     "netherchest.mixins.json"
   ],
   "custom": {
-    "modmanager": {
+    "mc-publish": {
       "modrinth": "okOUGirG",
       "curseforge": 494585
     }
