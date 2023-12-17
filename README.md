@@ -80,9 +80,9 @@ You can edit any of these values directly in the config file or via [ModMenu](ht
 ## Installation
 
 Requirements:
- - Minecraft `1.19.3`
+ - Minecraft `1.19.4`
  - Fabric Loader `>=0.14.0`
- - Fabric API `>=0.72.0`
+ - Fabric API `>=0.75.3`
 
 You can download the mod from:
 
