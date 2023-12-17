@@ -37,11 +37,12 @@
   },
   "depends": {
     "fabric": "*",
-    "fabricloader": "*"
+    "fabricloader": "*",
+    "minecraft": "${minecraft}",
+    "java": ">=17"
   },
   "suggests": {
     "modmenu": "${modmenu}",
-    "cloth-config": "${cloth_config}",
-    "minecraft": "${minecraft}"
+    "cloth-config": "${cloth_config}"
   }
 }
