@@ -8,7 +8,7 @@ import dev.kir.netherchest.inventory.NetherChestInventoryHolder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.util.registry.DynamicRegistryManager;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.level.LevelInfo;
 import net.minecraft.world.level.LevelProperties;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Optional;
 
 @Mixin(LevelProperties.class)
-public class MixinLevelProperties implements NetherChestInventoryHolder {
+public class LevelPropertiesMixin implements NetherChestInventoryHolder {
     private static final String NETHER_CHEST_TAG_NAME = "NetherItems";
 
     private NetherChestInventory netherChestInventory;
@@ -39,8 +39,9 @@ public class MixinLevelProperties implements NetherChestInventoryHolder {
         this.netherChestInventory = netherChestInventory;
     }
 
+    @SuppressWarnings("deprecation")
     @Inject(method = "readProperties", at = @At("RETURN"))
-    private static void onReadProperties(Dynamic<NbtElement> dynamic, DataFixer dataFixer, int dataVersion, NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
+    private static void onReadProperties(Dynamic<NbtElement> dynamic, DataFixer dataFixer, int dataVersion, NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, LevelProperties.SpecialProperty specialProperty, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
         NetherChestInventory inventory = new NetherChestInventory();
         Optional<Dynamic<NbtElement>> optionalNetherItemsTag = dynamic.get(NETHER_CHEST_TAG_NAME).result();
         if (optionalNetherItemsTag.isPresent()) {
@@ -55,8 +56,8 @@ public class MixinLevelProperties implements NetherChestInventoryHolder {
     }
 
     @Inject(method = "updateProperties", at = @At("RETURN"))
-    private void onUpdateProperties(DynamicRegistryManager registryManager, NbtCompound compoundTag, NbtCompound playerTag, CallbackInfo ci) {
+    private void onUpdateProperties(DynamicRegistryManager registryManager, NbtCompound levelNbt, NbtCompound playerNbt, CallbackInfo ci) {
         NetherChestInventory netherChestInventory = this.getNetherChestInventory();
-        compoundTag.put(NETHER_CHEST_TAG_NAME, netherChestInventory.toNbtList());
+        levelNbt.put(NETHER_CHEST_TAG_NAME, netherChestInventory.toNbtList());
     }
 }

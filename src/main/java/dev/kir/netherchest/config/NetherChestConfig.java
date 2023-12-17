@@ -4,8 +4,8 @@ import dev.kir.netherchest.compat.cloth.NetherChestClothConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public interface NetherChestConfig {
     }
 
     default boolean isValidChannel(Item item) {
-        return this.isValidChannel(Registry.ITEM.getId(item));
+        return this.isValidChannel(Registries.ITEM.getId(item));
     }
 
     default boolean isValidChannel(Identifier id) {

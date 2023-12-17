@@ -5,9 +5,10 @@ import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
 import net.minecraft.block.Material;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public final class NetherChestBlocks {
     public static final Block NETHER_CHEST;
@@ -20,6 +21,6 @@ public final class NetherChestBlocks {
 
     private static Block register(String id, Block block) {
         Identifier trueId = NetherChest.locate(id);
-        return Registry.register(Registry.BLOCK, trueId, block);
+        return Registry.register(Registries.BLOCK, trueId, block);
     }
 }

@@ -7,8 +7,8 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +21,7 @@ public class NetherChestInventory {
         this.channelsById = new ConcurrentHashMap<>();
 
         this.defaultChannel = new NetherChestInventoryChannel(this, ItemStack.EMPTY);
-        this.channelsById.put(Registry.ITEM.getId(Items.AIR), List.of(this.defaultChannel));
+        this.channelsById.put(Registries.ITEM.getId(Items.AIR), List.of(this.defaultChannel));
     }
 
     public NetherChestInventoryChannel channel(ItemStack key) {
@@ -31,7 +31,7 @@ public class NetherChestInventory {
             return this.defaultChannel;
         }
 
-        Identifier id = Registry.ITEM.getId(key.getItem());
+        Identifier id = Registries.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.computeIfAbsent(id, x -> new ArrayList<>());
         for (NetherChestInventoryChannel channel : channelBucket) {
             if (channel.isOf(key)) {
@@ -52,7 +52,7 @@ public class NetherChestInventory {
             return true;
         }
 
-        Identifier id = Registry.ITEM.getId(channel.getKey().getItem());
+        Identifier id = Registries.ITEM.getId(channel.getKey().getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
         boolean removed = channelBucket != null && channelBucket.remove(channel);
         if (removed && channelBucket.isEmpty()) {
@@ -68,7 +68,7 @@ public class NetherChestInventory {
             return true;
         }
 
-        Identifier id = Registry.ITEM.getId(key.getItem());
+        Identifier id = Registries.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
         boolean removed = channelBucket != null && channelBucket.removeIf(x -> x.isOf(key));
         if (removed) {
@@ -90,7 +90,7 @@ public class NetherChestInventory {
                 } else {
                     NetherChestInventoryChannel channel = new NetherChestInventoryChannel(this, channelKey);
                     channel.readNbtList(items);
-                    this.channelsById.computeIfAbsent(Registry.ITEM.getId(channelKey.getItem()), x -> new ArrayList<>()).add(channel);
+                    this.channelsById.computeIfAbsent(Registries.ITEM.getId(channelKey.getItem()), x -> new ArrayList<>()).add(channel);
                 }
             } else {
                 int slot = compoundTag.getByte("Slot");

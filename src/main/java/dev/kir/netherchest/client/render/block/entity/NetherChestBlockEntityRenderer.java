@@ -23,7 +23,7 @@ import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.World;
 
 @Environment(EnvType.CLIENT)
@@ -53,18 +53,17 @@ public class NetherChestBlockEntityRenderer extends ChestBlockEntityRenderer<Net
 
         if (block instanceof NetherChestBlock) {
             matrices.push();
-            NetherChestBlock netherChest = (NetherChestBlock)block;
 
             float rotation = blockState.get(ChestBlock.FACING).asRotation();
             matrices.translate(0.5D, 0.5D, 0.5D);
-            matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-rotation));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-rotation));
             matrices.translate(-0.5D, -0.5D, -0.5D);
 
             DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> properties;
             if (world == null) {
                 properties = DoubleBlockProperties.PropertyRetriever::getFallback;
             } else {
-                properties = netherChest.getBlockEntitySource(blockState, world, entity.getPos(), true);
+                properties = ((NetherChestBlock)block).getBlockEntitySource(blockState, world, entity.getPos(), true);
             }
 
             VertexConsumer vertexConsumer = getVertexConsumer(vertexConsumers);
