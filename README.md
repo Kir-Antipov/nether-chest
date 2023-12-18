@@ -43,7 +43,7 @@ When multichannel mode is enabled, each Nether Chest gains an extra slot that ca
 
 ![Hoppers/Comparators actually work](media/redstone.png)
 
-Nether Chests are compatible with hoppers and comparators. However, this feature is **disabled** by default.
+Nether Chests are compatible with hoppers and comparators.
 
 ### Config
 
@@ -51,7 +51,7 @@ If you have [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-co
 
 ```json
 {
-  "allowHoppers": false,
+  "allowHoppers": true,
   "allowInsertion": true,
   "allowExtraction": true,
   "enableMultichannelMode": true,
@@ -64,7 +64,7 @@ If you have [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-co
 
 | Name | Description | Default value |
 | ---- | ----------- | ------------- |
-| `allowHoppers` | When enabled, hoppers will be able to access the Nether Chest's inventory | `false` |
+| `allowHoppers` | When enabled, hoppers will be able to access the Nether Chest's inventory | `true` |
 | `allowInsertion` | When enabled, hoppers will be able to insert items into the Nether Chest's inventory | `true` |
 | `allowExtraction` | When enabled, hoppers will be able to extract items from the Nether Chest's inventory | `true` |
 | `enableMultichannelMode` | When enabled, Nether Chests can be locked to a specific channel | `true` |

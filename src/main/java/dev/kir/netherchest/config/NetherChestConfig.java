@@ -13,7 +13,7 @@ public interface NetherChestConfig {
     NetherChestConfig DEFAULT = FabricLoader.getInstance().isModLoaded("cloth-config") ? NetherChestClothConfig.getInstance() : new NetherChestConfig() { };
 
     default boolean allowHoppers() {
-        return false;
+        return true;
     }
 
     default boolean allowInsertion() {
