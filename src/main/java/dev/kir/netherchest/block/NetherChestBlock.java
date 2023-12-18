@@ -45,7 +45,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     protected static final VoxelShape SHAPE = Block.createCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
 
-    private static final Text CONTAINER_NAME = Text.translatable("container.netherchest");
+    private static final Text CONTAINER_NAME = Text.translatable("container.nether_chest");
 
 
     public NetherChestBlock(Settings settings) {

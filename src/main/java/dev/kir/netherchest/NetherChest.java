@@ -14,7 +14,8 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
 
 public class NetherChest implements ModInitializer, ClientModInitializer {
-    public static final String MOD_ID = "netherchest";
+    public static final String MOD_ID = "nether_chest";
+
     private static final NetherChestConfig CONFIG = NetherChestConfig.DEFAULT;
 
     public static Identifier locate(String location) {

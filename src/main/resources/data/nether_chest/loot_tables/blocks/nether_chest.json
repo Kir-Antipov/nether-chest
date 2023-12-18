@@ -9,7 +9,7 @@
           "children": [
             {
               "type": "minecraft:item",
-              "name": "netherchest:nether_chest",
+              "name": "nether_chest:nether_chest",
               "conditions": [
                 {
                   "condition": "minecraft:match_tool",

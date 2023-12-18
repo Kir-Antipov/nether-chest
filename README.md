@@ -47,7 +47,7 @@ Nether Chests are compatible with hoppers and comparators. However, this feature
 
 ### Config
 
-If you have [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed, you can customize the behavior of the mod. A config is usually located at `./config/netherchest.json` and by default looks like this:
+If you have [Cloth Config](https://www.curseforge.com/minecraft/mc-mods/cloth-config) installed, you can customize the behavior of the mod. A config is usually located at `./config/nether_chest.json` and by default looks like this:
 
 ```json
 {

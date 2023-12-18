@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "netherchest",
+  "id": "nether_chest",
   "version": "${version}",
   "name": "Nether Chest",
   "description": "Shared cloud storage for Minecraft.",
@@ -13,7 +13,7 @@
     "issues": "https://github.com/Kir-Antipov/nether-chest/issues/new/choose"
   },
   "license": "MIT",
-  "icon": "assets/netherchest/icon.png",
+  "icon": "assets/nether_chest/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -27,7 +27,7 @@
     ]
   },
   "mixins": [
-    "netherchest.mixins.json"
+    "nether_chest.mixins.json"
   ],
   "custom": {
     "mc-publish": {
