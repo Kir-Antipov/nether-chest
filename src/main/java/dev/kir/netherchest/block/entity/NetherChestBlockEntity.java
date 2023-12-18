@@ -2,10 +2,9 @@ package dev.kir.netherchest.block.entity;
 
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.NetherChestBlocks;
-import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventory;
+import dev.kir.netherchest.inventory.NetherChestInventoryView;
 import dev.kir.netherchest.screen.NetherChestScreenHandler;
-import dev.kir.netherchest.util.InventoryUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestLidAnimator;
@@ -24,6 +23,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     private static final int VIEWER_COUNT_UPDATE_EVENT = 1;
     private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
@@ -33,7 +34,7 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     private boolean inventoryDirty = true;
     private InventoryChangedListener listener;
     private ItemStack key;
-    private ChanneledNetherChestInventory inventory;
+    private NetherChestInventoryView inventory;
     private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
     private final ViewerCountManager stateManager = new ViewerCountManager() {
         @Override
@@ -72,7 +73,7 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
         this.key = ItemStack.EMPTY;
     }
 
-    public @Nullable ChanneledNetherChestInventory getInventory() {
+    public @Nullable NetherChestInventoryView getInventory() {
         return this.inventory;
     }
 
@@ -106,12 +107,14 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     }
 
     private void refreshInventory() {
-        if (this.inventory == null && this.key != null && this.world != null) {
-            NetherChestInventory netherChestInventory = InventoryUtil.getNetherChestInventory(this.world);
-            if (netherChestInventory != null) {
-                this.inventory = new ChanneledNetherChestInventory(netherChestInventory, this.key);
-                this.setupListener();
-            }
+        if (this.inventory != null || this.key == null || this.world == null) {
+            return;
+        }
+
+        Optional<NetherChestInventory> netherChestInventory = NetherChestInventory.of(this.world);
+        if (netherChestInventory.isPresent()) {
+            this.inventory = new NetherChestInventoryView(netherChestInventory.get(), this.key);
+            this.setupListener();
         }
     }
 
@@ -184,7 +187,7 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     private void setupListener() {
         if (this.listener == null && this.inventory != null) {
             this.listener = x -> {
-                int output = ((ChanneledNetherChestInventory)x).getComparatorOutput();
+                int output = ((NetherChestInventoryView)x).getComparatorOutput();
                 this.inventoryDirty |= this.syncedOutput != output;
                 this.syncedOutput = output;
             };

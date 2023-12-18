@@ -3,7 +3,7 @@ package dev.kir.netherchest.block;
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
-import dev.kir.netherchest.inventory.ChanneledNetherChestInventory;
+import dev.kir.netherchest.inventory.NetherChestInventoryView;
 import dev.kir.netherchest.screen.NetherChestScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -84,7 +84,7 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
             return ActionResult.SUCCESS;
         }
 
-        ChanneledNetherChestInventory inventory = netherChestBlockEntity.getInventory();
+        NetherChestInventoryView inventory = netherChestBlockEntity.getInventory();
         if (inventory == null) {
             return ActionResult.SUCCESS;
         }

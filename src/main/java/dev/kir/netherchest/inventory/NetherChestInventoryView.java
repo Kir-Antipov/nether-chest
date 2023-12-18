@@ -12,11 +12,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
-public class ChanneledNetherChestInventory implements SidedInventory {
+public final class NetherChestInventoryView implements SidedInventory {
     private static final int KEY_SLOT = NetherChestInventoryChannel.SIZE;
     private static final int[] HORIZONTAL_SLOTS = new int[] { KEY_SLOT };
-    private static final int[] VERTICAL_SLOTS = new int[NetherChestInventoryChannel.SIZE];
+    private static final int[] VERTICAL_SLOTS = IntStream.range(0, NetherChestInventoryChannel.SIZE).toArray();
     public static final int SIZE = NetherChestInventoryChannel.SIZE + 1;
 
     private ItemStack key;
@@ -25,8 +26,8 @@ public class ChanneledNetherChestInventory implements SidedInventory {
     private InventoryChangedListener channelListener;
     private List<InventoryChangedListener> listeners;
 
-    public ChanneledNetherChestInventory(NetherChestInventory netherChestInventory, ItemStack key) {
-        this.activeChannel = netherChestInventory.channel(key);
+    public NetherChestInventoryView(NetherChestInventory netherChestInventory, ItemStack key) {
+        this.activeChannel = netherChestInventory.get(key);
         this.key = this.activeChannel.getKey().copy();
         this.setupListener();
     }
@@ -54,7 +55,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
 
         this.removeListener();
         this.activeChannel.dispose();
-        this.activeChannel = this.activeChannel.getNetherChestInventory().channel(key);
+        this.activeChannel = this.activeChannel.getNetherChestInventory().get(key);
         this.key = this.activeChannel.getKey().copy();
         this.setupListener();
         this.markDirty();
@@ -185,7 +186,7 @@ public class ChanneledNetherChestInventory implements SidedInventory {
     }
 
     public void cancelRemoval() {
-        this.activeChannel = this.activeChannel.getNetherChestInventory().channel(this.getKey());
+        this.activeChannel = this.activeChannel.getNetherChestInventory().get(this.getKey());
         this.setupListener();
     }
 
@@ -200,12 +201,6 @@ public class ChanneledNetherChestInventory implements SidedInventory {
         if (this.channelListener != null) {
             this.activeChannel.removeListener(this.channelListener);
             this.channelListener = null;
-        }
-    }
-
-    static {
-        for (int i = 0; i < NetherChestInventoryChannel.SIZE; ++i) {
-            VERTICAL_SLOTS[i] = i;
         }
     }
 }
