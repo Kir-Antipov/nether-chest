@@ -5,8 +5,6 @@ import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.config.NetherChestConfig;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -27,7 +25,7 @@ public final class NetherChestInventory {
 
     public NetherChestInventory() {
         this.channelsById = new ConcurrentHashMap<>();
-        this.defaultChannel = new NetherChestInventoryChannel(this, ItemStack.EMPTY);
+        this.defaultChannel = new NetherChestInventoryChannel(ItemStack.EMPTY);
         this.channelsById.put(this.defaultChannel.getId(), List.of(this.defaultChannel));
     }
 
@@ -44,50 +42,39 @@ public final class NetherChestInventory {
         return Optional.ofNullable(((NetherChestInventoryHolder)properties).getNetherChestInventory());
     }
 
-    public Iterable<NetherChestInventoryChannel> channels() {
+    public static Optional<NetherChestInventoryView> viewOf(WorldAccess world, ItemStack key) {
+        return NetherChestInventory.of(world).map(inventory -> new NetherChestInventoryView(inventory, key));
+    }
+
+    private Iterable<NetherChestInventoryChannel> channels() {
         return this.channelsById.values().stream().flatMap(Collection::stream)::iterator;
     }
 
-    public NetherChestInventoryChannel get(ItemStack key) {
-        NetherChestConfig config = NetherChest.getConfig();
-        if (key.isEmpty() || !config.isValidChannel(key)) {
-            this.defaultChannel.use();
+    public KeyedInventory get(ItemStack key) {
+        if (key.isEmpty() || !NetherChest.getConfig().isValidChannel(key)) {
+            this.defaultChannel.open();
             return this.defaultChannel;
         }
 
         Identifier id = Registries.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.computeIfAbsent(id, x -> new ArrayList<>());
         for (NetherChestInventoryChannel channel : channelBucket) {
-            if (channel.isOf(key)) {
-                channel.use();
-                return channel.with(key);
+            if (!channel.isOf(key)) {
+                continue;
             }
+
+            channel.open();
+            return KeyedInventory.wrap(channel, key);
         }
 
-        NetherChestInventoryChannel channel = new NetherChestInventoryChannel(this, key);
+        NetherChestInventoryChannel channel = new NetherChestInventoryChannel(key);
         channelBucket.add(channel);
-        channel.use();
+        channel.open();
         return channel;
     }
 
-    public boolean remove(NetherChestInventoryChannel channel) {
-        if (channel == this.defaultChannel) {
-            this.defaultChannel.clear();
-            return true;
-        }
-
-        Identifier id = channel.getId();
-        List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
-        boolean removed = channelBucket != null && channelBucket.remove(channel);
-        if (removed && channelBucket.isEmpty()) {
-            this.channelsById.remove(id);
-        }
-        return removed;
-    }
-
     public boolean remove(ItemStack key) {
-        NetherChestConfig config = NetherChest.getConfig();
-        if (key.isEmpty() || !config.isValidChannel(key)) {
+        if (key.isEmpty() || !NetherChest.getConfig().isValidChannel(key)) {
             this.defaultChannel.clear();
             return true;
         }
@@ -95,7 +82,7 @@ public final class NetherChestInventory {
         Identifier id = Registries.ITEM.getId(key.getItem());
         List<NetherChestInventoryChannel> channelBucket = this.channelsById.get(id);
         boolean removed = channelBucket != null && channelBucket.removeIf(x -> x.isOf(key));
-        if (removed) {
+        if (removed && channelBucket.isEmpty()) {
             this.channelsById.remove(id);
         }
         return removed;

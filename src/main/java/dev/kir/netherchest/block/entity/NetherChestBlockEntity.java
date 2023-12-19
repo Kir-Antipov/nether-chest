@@ -111,9 +111,9 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
             return;
         }
 
-        Optional<NetherChestInventory> netherChestInventory = NetherChestInventory.of(this.world);
-        if (netherChestInventory.isPresent()) {
-            this.inventory = new NetherChestInventoryView(netherChestInventory.get(), this.key);
+        Optional<NetherChestInventoryView> inventory = NetherChestInventory.viewOf(this.world, this.key);
+        if (inventory.isPresent()) {
+            this.inventory = inventory.get();
             this.setupListener();
         }
     }

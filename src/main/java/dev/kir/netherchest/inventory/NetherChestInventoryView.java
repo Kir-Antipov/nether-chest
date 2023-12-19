@@ -12,50 +12,46 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public final class NetherChestInventoryView implements SidedInventory {
-    private static final int KEY_SLOT = NetherChestInventoryChannel.SIZE;
-    private static final int[] HORIZONTAL_SLOTS = new int[] { KEY_SLOT };
-    private static final int[] VERTICAL_SLOTS = IntStream.range(0, NetherChestInventoryChannel.SIZE).toArray();
-    public static final int SIZE = NetherChestInventoryChannel.SIZE + 1;
-
+    private final NetherChestInventory inventory;
     private ItemStack key;
-    private NetherChestInventoryChannel activeChannel;
+    private KeyedInventory activeChannel;
     private NetherChestBlockEntity activeBlockEntity;
     private InventoryChangedListener channelListener;
     private List<InventoryChangedListener> listeners;
 
-    public NetherChestInventoryView(NetherChestInventory netherChestInventory, ItemStack key) {
-        this.activeChannel = netherChestInventory.get(key);
+    NetherChestInventoryView(NetherChestInventory inventory, ItemStack key) {
+        this.inventory = inventory;
+        this.activeChannel = inventory.get(key);
         this.key = this.activeChannel.getKey().copy();
         this.setupListener();
     }
 
-    public ItemStack getKey() {
-        return this.key;
+    public KeyedInventory getActiveChannel() {
+        return this.activeChannel;
     }
 
-    public NetherChestInventoryChannel getActiveChannel() {
-        return this.activeChannel;
+    public NetherChestBlockEntity getActiveBlockEntity() {
+        return this.activeBlockEntity;
     }
 
     public void setActiveBlockEntity(NetherChestBlockEntity blockEntity) {
         this.activeBlockEntity = blockEntity;
     }
 
-    public boolean isActiveBlockEntity(NetherChestBlockEntity blockEntity) {
-        return this.activeBlockEntity == blockEntity;
+    public ItemStack getKey() {
+        return this.key;
     }
 
-    public void changeChannel(ItemStack key) {
+    public void setKey(ItemStack key) {
         if (ItemStack.areEqual(key, this.activeChannel.getKey())) {
             return;
         }
 
         this.removeListener();
-        this.activeChannel.dispose();
-        this.activeChannel = this.activeChannel.getNetherChestInventory().get(key);
+        this.tryCloseActiveChannel();
+        this.activeChannel = this.inventory.get(key);
         this.key = this.activeChannel.getKey().copy();
         this.setupListener();
         this.markDirty();
@@ -63,7 +59,7 @@ public final class NetherChestInventoryView implements SidedInventory {
 
     @Override
     public int size() {
-        return SIZE;
+        return this.activeChannel.size() + 1;
     }
 
     @Override
@@ -73,43 +69,47 @@ public final class NetherChestInventoryView implements SidedInventory {
 
     @Override
     public ItemStack getStack(int slot) {
-        return slot == KEY_SLOT ? this.key : this.activeChannel.getStack(slot);
-    }
-
-    @Override
-    public ItemStack removeStack(int slot, int amount) {
-        if (slot == KEY_SLOT) {
-            ItemStack keyPart = this.key.split(amount);
-            if (!keyPart.isEmpty()) {
-                this.changeChannel(this.key);
-            }
-            return keyPart;
-        }
-        return this.activeChannel.removeStack(slot, amount);
-    }
-
-    @Override
-    public ItemStack removeStack(int slot) {
-        if (slot == KEY_SLOT) {
-            ItemStack currentKey = this.key;
-            this.changeChannel(ItemStack.EMPTY);
-            return currentKey;
-        }
-        return this.activeChannel.removeStack(slot);
+        return isKeySlot(slot) ? this.key : this.activeChannel.getStack(slot);
     }
 
     @Override
     public void setStack(int slot, ItemStack stack) {
-        if (slot == KEY_SLOT) {
-            this.changeChannel(stack);
-        } else {
+        if (!isKeySlot(slot)) {
             this.activeChannel.setStack(slot, stack);
+            return;
         }
+
+        this.setKey(stack);
+    }
+
+    @Override
+    public ItemStack removeStack(int slot, int amount) {
+        if (!isKeySlot(slot)) {
+            return this.activeChannel.removeStack(slot, amount);
+        }
+
+        ItemStack keyPart = this.key.split(amount);
+        if (!keyPart.isEmpty()) {
+            this.setKey(this.key);
+        }
+        return keyPart;
+
+    }
+
+    @Override
+    public ItemStack removeStack(int slot) {
+        if (!isKeySlot(slot)) {
+            return this.activeChannel.removeStack(slot);
+        }
+
+        ItemStack currentKey = this.key;
+        this.setKey(ItemStack.EMPTY);
+        return currentKey;
     }
 
     @Override
     public void markDirty() {
-        this.changeChannel(this.key);
+        this.setKey(this.key);
         if (this.listeners == null) {
             return;
         }
@@ -144,13 +144,14 @@ public final class NetherChestInventoryView implements SidedInventory {
     @Override
     public void clear() {
         this.activeChannel.clear();
-        this.changeChannel(ItemStack.EMPTY);
+        this.setKey(ItemStack.EMPTY);
     }
 
     public void addListener(InventoryChangedListener listener) {
         if (this.listeners == null) {
             this.listeners = new ArrayList<>();
         }
+
         this.listeners.add(listener);
     }
 
@@ -160,9 +161,19 @@ public final class NetherChestInventoryView implements SidedInventory {
         }
     }
 
+    public boolean isKeySlot(int slot) {
+        return slot == this.activeChannel.size();
+    }
+
     @Override
     public int[] getAvailableSlots(Direction side) {
-        return side == Direction.UP || side == Direction.DOWN || !NetherChest.getConfig().enableMultichannelMode() ? VERTICAL_SLOTS : HORIZONTAL_SLOTS;
+        NetherChestInventoryViewSlots slots = NetherChestInventoryViewSlots.forChannelSize(this.activeChannel.size());
+
+        if (side.getAxis() == Direction.Axis.Y || !NetherChest.getConfig().enableMultichannelMode()) {
+            return slots.getVerticalSlots();
+        } else {
+            return slots.getHorizontalSlots();
+        }
     }
 
     public int getComparatorOutput() {
@@ -172,7 +183,7 @@ public final class NetherChestInventoryView implements SidedInventory {
     @Override
     public boolean canInsert(int slot, ItemStack stack, @Nullable Direction dir) {
         NetherChestConfig config = NetherChest.getConfig();
-        return config.allowInsertion() && (slot != KEY_SLOT || config.isValidChannel(stack));
+        return config.allowInsertion() && (!isKeySlot(slot) || config.isValidChannel(stack));
     }
 
     @Override
@@ -182,25 +193,35 @@ public final class NetherChestInventoryView implements SidedInventory {
 
     public void markRemoved() {
         this.removeListener();
-        this.activeChannel.dispose();
+        this.tryCloseActiveChannel();
     }
 
     public void cancelRemoval() {
-        this.activeChannel = this.activeChannel.getNetherChestInventory().get(this.getKey());
+        this.activeChannel = this.inventory.get(this.getKey());
         this.setupListener();
     }
 
-    private void setupListener() {
-        if (this.channelListener == null) {
-            this.channelListener = x -> this.markDirty();
-            this.activeChannel.addListener(this.channelListener);
+    private void tryCloseActiveChannel() {
+        if (this.activeChannel.close() && this.activeChannel.isEmpty()) {
+            this.inventory.remove(this.activeChannel.getKey());
         }
     }
 
-    private void removeListener() {
+    private void setupListener() {
         if (this.channelListener != null) {
-            this.activeChannel.removeListener(this.channelListener);
-            this.channelListener = null;
+            return;
         }
+
+        this.channelListener = x -> this.markDirty();
+        this.activeChannel.addListener(this.channelListener);
+    }
+
+    private void removeListener() {
+        if (this.channelListener == null) {
+            return;
+        }
+
+        this.activeChannel.removeListener(this.channelListener);
+        this.channelListener = null;
     }
 }

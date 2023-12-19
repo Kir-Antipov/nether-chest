@@ -1,44 +1,40 @@
 package dev.kir.netherchest.inventory;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.config.NetherChestConfig;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.Identifier;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class NetherChestInventoryChannel extends SimpleInventory {
-    public static final int SIZE = 27;
+final class NetherChestInventoryChannel extends SimpleInventory implements KeyedInventory {
+    private static final int DEFAULT_SIZE = 27;
+    public static final Codec<NetherChestInventoryChannel> CODEC = KeyedInventory.codec(NetherChestInventoryChannel::new);
 
-    private final NetherChestInventory netherChestInventory;
     private final ItemStack key;
     private final AtomicInteger inUse = new AtomicInteger();
     private int comparatorOutput;
 
-    public NetherChestInventoryChannel(NetherChestInventory netherChestInventory, ItemStack key) {
-        super(SIZE);
-        this.netherChestInventory = netherChestInventory;
+    public NetherChestInventoryChannel(ItemStack key) {
+        this(DEFAULT_SIZE, key);
+    }
+
+    private NetherChestInventoryChannel(int size, ItemStack key) {
+        super(size);
         this.key = key;
     }
 
-    public NetherChestInventory getNetherChestInventory() {
-        return this.netherChestInventory;
-    }
-
-    public Identifier getId() {
-        return Registries.ITEM.getId(this.key.getItem());
-    }
-
+    @Override
     public ItemStack getKey() {
         return this.key;
     }
 
+    @Override
     public boolean isOf(ItemStack key) {
         NetherChestConfig config = NetherChest.getConfig();
         if (this.key.isEmpty() && (key.isEmpty() || !config.isValidChannel(key))) {
@@ -54,49 +50,42 @@ public class NetherChestInventoryChannel extends SimpleInventory {
         return countEq && nbtEq;
     }
 
-    void use() {
-        this.inUse.incrementAndGet();
+    @Override
+    public boolean isOpen() {
+        return this.inUse.get() != 0;
     }
 
-    public void dispose() {
-        if (this.inUse.decrementAndGet() == 0 && this.isEmpty()) {
-            this.netherChestInventory.remove(this);
-        }
+    @Override
+    public boolean open() {
+        return this.inUse.incrementAndGet() != 0;
     }
 
-    public static Codec<NetherChestInventoryChannel> getCodec(NetherChestInventory inventory) {
-        if (inventory == null) {
-            return NetherChestInventoryChannelCodec.INSTANCE;
-        }
-
-        return new NetherChestInventoryChannelCodec(inventory);
+    @Override
+    public boolean close() {
+        return this.inUse.decrementAndGet() == 0;
     }
 
     @Override
     public void readNbtList(NbtList tags) {
-        NetherChestInventoryChannelCodec.INSTANCE.decodeItems(NbtOps.INSTANCE, tags, this);
+        KeyedInventoryCodec<NetherChestInventoryChannel> codec = (KeyedInventoryCodec<NetherChestInventoryChannel>)CODEC;
+        codec.decodeItems(NbtOps.INSTANCE, tags, this);
     }
 
     @Override
     public NbtList toNbtList() {
-        return (NbtList)NetherChestInventoryChannelCodec.INSTANCE.encodeItems(this, NbtOps.INSTANCE, NbtOps.INSTANCE.empty()).getOrThrow(false, NetherChest.LOGGER::error);
+        KeyedInventoryCodec<NetherChestInventoryChannel> codec = (KeyedInventoryCodec<NetherChestInventoryChannel>)CODEC;
+        DataResult<NbtElement> result = codec.encodeItems(this, NbtOps.INSTANCE, NbtOps.INSTANCE.empty());
+        return (NbtList)result.getOrThrow(false, NetherChest.LOGGER::error);
     }
 
     @Override
     public void markDirty() {
-        this.comparatorOutput = ScreenHandler.calculateComparatorOutput(this);
+        this.comparatorOutput = KeyedInventory.super.getComparatorOutput();
         super.markDirty();
     }
 
+    @Override
     public int getComparatorOutput() {
         return this.comparatorOutput;
-    }
-
-    NetherChestInventoryChannel with(ItemStack key) {
-        if (ItemStack.areEqual(this.key, key)) {
-            return this;
-        }
-
-        return new NetherChestInventoryChannelWrapper(this, key);
     }
 }
