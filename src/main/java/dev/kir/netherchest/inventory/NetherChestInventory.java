@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public final class NetherChestInventory {
-    public static final Codec<NetherChestInventory> CODEC = createCodec(null);
+    public static final Codec<NetherChestInventory> CODEC;
 
     private final Map<Identifier, List<NetherChestInventoryChannel>> channelsById;
     private NetherChestInventoryChannel defaultChannel;
@@ -107,23 +107,10 @@ public final class NetherChestInventory {
         this.channelsById.put(this.defaultChannel.getId(), List.of(this.defaultChannel));
     }
 
-    public void readNbtList(NbtList tags) {
-        createCodec(this).decode(NbtOps.INSTANCE, tags);
-    }
-
-    public NbtList toNbtList() {
-        return (NbtList)CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow(false, NetherChest.LOGGER::error);
-    }
-
-    private static Codec<NetherChestInventory> createCodec(NetherChestInventory instance) {
-        return NetherChestInventoryChannel.getCodec(instance).listOf().xmap(
+    static {
+        CODEC = NetherChestInventoryChannel.CODEC.listOf().xmap(
             channels -> {
-                NetherChestInventory inventory = instance;
-                if (inventory == null) {
-                    inventory = new NetherChestInventory();
-                } else {
-                    inventory.clear();
-                }
+                NetherChestInventory inventory = new NetherChestInventory();
 
                 for (NetherChestInventoryChannel channel : channels) {
                     if (channel.getKey().isEmpty()) {
@@ -136,6 +123,7 @@ public final class NetherChestInventory {
 
                 return inventory;
             },
+
             inventory -> {
                 NetherChestConfig config = NetherChest.getConfig();
                 Stream<NetherChestInventoryChannel> channels = StreamSupport.stream(inventory.channels().spliterator(), false);
