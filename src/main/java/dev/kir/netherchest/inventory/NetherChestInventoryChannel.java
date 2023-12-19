@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.config.NetherChestConfig;
+import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtElement;
@@ -87,5 +88,17 @@ final class NetherChestInventoryChannel extends SimpleInventory implements Keyed
     @Override
     public int getComparatorOutput() {
         return this.comparatorOutput;
+    }
+
+    @Override
+    public void addListener(InventoryChangedListener listener) {
+        // Make the method discoverable without remapping.
+        super.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(InventoryChangedListener listener) {
+        // Make the method discoverable without remapping.
+        super.removeListener(listener);
     }
 }
