@@ -22,11 +22,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Optional;
 
 @Mixin(LevelProperties.class)
-public class LevelPropertiesMixin implements NetherChestInventoryHolder {
+public abstract class LevelPropertiesMixin implements NetherChestInventoryHolder {
     private static final String NETHER_CHEST_TAG_NAME = "NetherItems";
 
     private NetherChestInventory netherChestInventory;
 
+    @Override
     public NetherChestInventory getNetherChestInventory() {
         if (this.netherChestInventory == null) {
             this.netherChestInventory = new NetherChestInventory();
@@ -35,6 +36,7 @@ public class LevelPropertiesMixin implements NetherChestInventoryHolder {
         return this.netherChestInventory;
     }
 
+    @Override
     public void setNetherChestInventory(NetherChestInventory netherChestInventory) {
         this.netherChestInventory = netherChestInventory;
     }
@@ -44,6 +46,7 @@ public class LevelPropertiesMixin implements NetherChestInventoryHolder {
     private static void onReadProperties(Dynamic<NbtElement> dynamic, DataFixer dataFixer, int dataVersion, NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, LevelProperties.SpecialProperty specialProperty, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
         NetherChestInventory inventory = new NetherChestInventory();
         Optional<Dynamic<NbtElement>> optionalNetherItemsTag = dynamic.get(NETHER_CHEST_TAG_NAME).result();
+
         if (optionalNetherItemsTag.isPresent()) {
             NbtElement netherItemsTag = optionalNetherItemsTag.get().getValue();
             if (netherItemsTag instanceof NbtList) {
