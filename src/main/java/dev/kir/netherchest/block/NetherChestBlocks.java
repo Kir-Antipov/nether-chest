@@ -4,7 +4,6 @@ import dev.kir.netherchest.NetherChest;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
-import net.minecraft.block.Material;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
@@ -14,7 +13,7 @@ public final class NetherChestBlocks {
     public static final Block NETHER_CHEST;
 
     static {
-        NETHER_CHEST = register("nether_chest", new NetherChestBlock(AbstractBlock.Settings.of(Material.STONE, MapColor.DARK_RED).requiresTool().strength(17F, 450F).sounds(BlockSoundGroup.NETHER_BRICKS).luminance(x -> 7)));
+        NETHER_CHEST = register("nether_chest", new NetherChestBlock(AbstractBlock.Settings.create().mapColor(MapColor.DARK_RED).requiresTool().strength(17F, 450F).sounds(BlockSoundGroup.NETHER_BRICKS).luminance(x -> 7)));
     }
 
     public static void init() { }

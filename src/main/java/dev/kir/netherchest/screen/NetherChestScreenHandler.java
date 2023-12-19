@@ -62,11 +62,11 @@ public class NetherChestScreenHandler extends ScreenHandler {
         if (slot != null && slot.hasStack()) {
             ItemStack slotStack = slot.getStack();
             transferredItemStack = slotStack.copy();
-            if (index < INVENTORY_SIZE) {
-                if (!this.insertItem(slotStack, INVENTORY_SIZE, this.slots.size(), true)) {
+            if (index < this.inventory.size()) {
+                if (!this.insertItem(slotStack, this.inventory.size(), this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(slotStack, 0, INVENTORY_SIZE, false)) {
+            } else if (!this.insertItem(slotStack, 0, this.inventory.size(), false)) {
                 return ItemStack.EMPTY;
             }
 

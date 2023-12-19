@@ -24,7 +24,7 @@ final class KeyedInventoryCodec<TInventory extends KeyedInventory> implements Co
     @Override
     public <TFormat> DataResult<TFormat> encode(TInventory input, DynamicOps<TFormat> ops, TFormat prefix) {
         RecordBuilder<TFormat> channel = ops.mapBuilder();
-        channel.add(KEY, ItemStackCodec.INSTANCE.encode(input.getKey(), ops, ops.empty()));
+        channel.add(KEY, ItemStack.CODEC.encode(input.getKey(), ops, ops.empty()));
         channel.add(ITEMS, encodeItems(input, ops, ops.empty()));
         return channel.build(prefix);
     }

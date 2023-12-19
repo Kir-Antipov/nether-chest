@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
@@ -23,7 +24,7 @@ public final class NetherChestItems {
 
     public static void init() { }
 
-    private static Item register(String id, Block block, Item.Settings settings, ItemGroup group, BiConsumer<FabricItemGroupEntries, Item> groupConsumer) {
+    private static Item register(String id, Block block, Item.Settings settings, RegistryKey<ItemGroup> group, BiConsumer<FabricItemGroupEntries, Item> groupConsumer) {
         Identifier trueId = NetherChest.locate(id);
 
         BlockItem item = new BlockItem(block, settings);
