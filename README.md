@@ -5,7 +5,7 @@
 [![GitHub Build Status](https://img.shields.io/github/actions/workflow/status/Kir-Antipov/nether-chest/build-artifacts.yml?style=flat&logo=github&cacheSeconds=3600)](https://github.com/Kir-Antipov/nether-chest/actions/workflows/build-artifacts.yml)
 [![Version](https://img.shields.io/github/v/release/Kir-Antipov/nether-chest?sort=date&style=flat&label=version&cacheSeconds=3600)](https://github.com/Kir-Antipov/nether-chest/releases/latest)
 [![Modrinth](https://img.shields.io/badge/dynamic/json?color=00AF5C&label=Modrinth&query=title&url=https://api.modrinth.com/v2/project/nether-chest&style=flat&cacheSeconds=3600&logo=modrinth)](https://modrinth.com/mod/nether-chest)
-[![CurseForge](https://img.shields.io/badge/dynamic/json?color=F16436&label=CurseForge&query=title&url=https://api.cfwidget.com/494585&cacheSeconds=3600&logo=curseforge)](https://www.curseforge.com/minecraft/mc-mods/nether-chest-fabric)
+[![CurseForge](https://img.shields.io/badge/dynamic/json?color=F16436&label=CurseForge&query=title&url=https://api.cfwidget.com/494585&cacheSeconds=3600&logo=curseforge)](https://www.curseforge.com/minecraft/mc-mods/better-nether-chest)
 [![License](https://img.shields.io/github/license/Kir-Antipov/nether-chest?style=flat&cacheSeconds=36000)](https://github.com/Kir-Antipov/nether-chest/blob/HEAD/LICENSE.md)
 
 I like to think of the storage blocks in Minecraft as analogues to different types of data storage we encounter in everyday life:
@@ -88,7 +88,7 @@ You can download the mod from:
 
  - [GitHub Releases](https://github.com/Kir-Antipov/nether-chest/releases/) <sup><sub>(recommended)</sub></sup>
  - [Modrinth](https://modrinth.com/mod/nether-chest)
- - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/nether-chest-fabric)
+ - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/better-nether-chest)
  - [GitHub Actions](https://github.com/Kir-Antipov/nether-chest/actions/workflows/build-artifacts.yml) *(these builds may be unstable, but they represent the actual state of the development)*
 
 ## Building from sources
