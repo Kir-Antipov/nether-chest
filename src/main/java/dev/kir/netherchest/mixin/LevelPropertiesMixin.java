@@ -1,27 +1,22 @@
 package dev.kir.netherchest.mixin;
 
-import com.mojang.datafixers.DataFixer;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.Lifecycle;
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.inventory.NetherChestInventory;
 import dev.kir.netherchest.inventory.NetherChestInventoryHolder;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.level.LevelInfo;
 import net.minecraft.world.level.LevelProperties;
-import net.minecraft.world.level.storage.SaveVersionInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Optional;
 
 @Mixin(LevelProperties.class)
 public abstract class LevelPropertiesMixin implements NetherChestInventoryHolder {
@@ -45,18 +40,11 @@ public abstract class LevelPropertiesMixin implements NetherChestInventoryHolder
 
     @SuppressWarnings("deprecation")
     @Inject(method = "readProperties", at = @At("RETURN"))
-    private static void onReadProperties(Dynamic<NbtElement> dynamic, DataFixer dataFixer, int dataVersion, NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, LevelProperties.SpecialProperty specialProperty, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
-        NetherChestInventory inventory;
-        Optional<Dynamic<NbtElement>> optionalNetherItemsTag = dynamic.get(NETHER_CHEST_TAG_NAME).result();
-
-        if (optionalNetherItemsTag.isPresent()) {
-            NbtElement netherItemsTag = optionalNetherItemsTag.get().getValue();
-            inventory = NetherChestInventory.CODEC.decode(NbtOps.INSTANCE, netherItemsTag).getOrThrow(false, NetherChest.LOGGER::error).getFirst();
-        } else {
-            inventory = new NetherChestInventory();
-        }
-
+    private static <T> void onReadProperties(Dynamic<T> dynamic, LevelInfo info, LevelProperties.SpecialProperty specialProperty, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> cir) {
         LevelProperties properties = cir.getReturnValue();
+        Dynamic<T> dynamicItems = dynamic.get(NETHER_CHEST_TAG_NAME).orElseEmptyList();
+        NetherChestInventory inventory = NetherChestInventory.CODEC.decode(dynamicItems).getOrThrow(false, NetherChest.LOGGER::error).getFirst();
+
         ((NetherChestInventoryHolder)properties).setNetherChestInventory(inventory);
     }
 

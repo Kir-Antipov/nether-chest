@@ -1,5 +1,6 @@
 package dev.kir.netherchest.block;
 
+import com.mojang.serialization.MapCodec;
 import dev.kir.netherchest.NetherChest;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntities;
 import dev.kir.netherchest.block.entity.NetherChestBlockEntity;
@@ -40,6 +41,7 @@ import net.minecraft.world.WorldAccess;
 
 @SuppressWarnings("deprecation")
 public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity> implements Waterloggable, InventoryProvider {
+    public static final MapCodec<NetherChestBlock> CODEC = createCodec(NetherChestBlock::new);
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
@@ -53,6 +55,11 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
         this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH).with(WATERLOGGED, false));
     }
 
+
+    @Override
+    public MapCodec<? extends NetherChestBlock> getCodec() {
+        return CODEC;
+    }
 
     @Environment(EnvType.CLIENT)
     public DoubleBlockProperties.PropertySource<? extends ChestBlockEntity> getBlockEntitySource(BlockState state, World world, BlockPos pos, boolean ignoreBlocked) {
@@ -77,19 +84,19 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        NetherChestBlockEntity netherChestBlockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
+        NetherChestBlockEntity blockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
         BlockPos up = pos.up();
         boolean isBlocked = world.getBlockState(up).isSolidBlock(world, up);
-        if (netherChestBlockEntity == null || world.isClient || isBlocked) {
+        if (blockEntity == null || world.isClient || isBlocked) {
             return ActionResult.SUCCESS;
         }
 
-        NetherChestInventoryView inventory = netherChestBlockEntity.getInventory();
+        NetherChestInventoryView inventory = blockEntity.getInventory();
         if (inventory == null) {
             return ActionResult.SUCCESS;
         }
 
-        inventory.setActiveBlockEntity(netherChestBlockEntity);
+        inventory.setActiveBlockEntity(blockEntity);
         if (NetherChest.getConfig().enableMultichannelMode()) {
             player.openHandledScreen(new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity) -> new NetherChestScreenHandler(i, playerInventory, inventory), CONTAINER_NAME));
         } else {
@@ -97,17 +104,6 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
         }
         PiglinBrain.onGuardedBlockInteracted(player, true);
         return ActionResult.CONSUME;
-    }
-
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
-            NetherChestBlockEntity netherChestBlockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
-            if (netherChestBlockEntity != null) {
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), netherChestBlockEntity.getKey().copy());
-                world.updateComparators(pos, this);
-            }
-            super.onStateReplaced(state, world, pos, newState, moved);
-        }
     }
 
     @Override
@@ -118,14 +114,6 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         return world.isClient ? validateTicker(type, NetherChestBlockEntities.NETHER_CHEST, NetherChestBlockEntity::clientTick) : validateTicker(type, NetherChestBlockEntities.NETHER_CHEST, NetherChestBlockEntity::serverTick);
-    }
-
-    @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof NetherChestBlockEntity) {
-            ((NetherChestBlockEntity)blockEntity).onScheduledTick();
-        }
     }
 
     @Override
@@ -174,6 +162,29 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
     }
 
     @Override
+    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity instanceof NetherChestBlockEntity) {
+            ((NetherChestBlockEntity)blockEntity).onScheduledTick();
+        }
+    }
+
+    @Override
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (state.isOf(newState.getBlock())) {
+            return;
+        }
+
+        NetherChestBlockEntity blockEntity = world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).orElse(null);
+        if (blockEntity != null) {
+            ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), blockEntity.getKey().copy());
+            world.updateComparators(pos, this);
+        }
+
+        super.onStateReplaced(state, world, pos, newState, moved);
+    }
+
+    @Override
     public boolean hasComparatorOutput(BlockState state) {
         return true;
     }
@@ -185,9 +196,15 @@ public class NetherChestBlock extends AbstractChestBlock<NetherChestBlockEntity>
 
     @Override
     public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos) {
-        if (NetherChest.getConfig().allowHoppers()) {
-            return world.getBlockEntity(pos, NetherChestBlockEntities.NETHER_CHEST).map(NetherChestBlockEntity::getInventory).orElse(null);
+        if (!NetherChest.getConfig().allowHoppers()) {
+            return null;
         }
-        return null;
+
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (!(blockEntity instanceof NetherChestBlockEntity)) {
+            return null;
+        }
+
+        return ((NetherChestBlockEntity)blockEntity).getInventory();
     }
 }

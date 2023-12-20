@@ -14,7 +14,6 @@ import net.minecraft.util.Rarity;
 
 import java.util.function.BiConsumer;
 
-@SuppressWarnings("UnstableApiUsage")
 public final class NetherChestItems {
     public static final Item NETHER_CHEST;
 

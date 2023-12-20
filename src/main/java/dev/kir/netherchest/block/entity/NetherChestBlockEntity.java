@@ -11,13 +11,13 @@ import net.minecraft.block.entity.ChestLidAnimator;
 import net.minecraft.block.entity.LidOpenable;
 import net.minecraft.block.entity.ViewerCountManager;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -27,31 +27,22 @@ import java.util.Optional;
 
 public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     private static final int VIEWER_COUNT_UPDATE_EVENT = 1;
-    private static final SoundEvent OPEN_SOUND = SoundEvents.BLOCK_ENDER_CHEST_OPEN;
-    private static final SoundEvent CLOSE_SOUND = SoundEvents.BLOCK_ENDER_CHEST_CLOSE;
 
     private int syncedOutput = -1;
     private boolean inventoryDirty = true;
-    private InventoryChangedListener listener;
-    private ItemStack key;
-    private NetherChestInventoryView inventory;
+    private ItemStack key = ItemStack.EMPTY;
+    private NetherChestInventoryView inventory = null;
+    private InventoryChangedListener listener = null;
     private final ChestLidAnimator lidAnimator = new ChestLidAnimator();
     private final ViewerCountManager stateManager = new ViewerCountManager() {
         @Override
         protected void onContainerOpen(World world, BlockPos pos, BlockState state) {
-            this.playSound(world, pos, OPEN_SOUND);
+            world.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundEvents.BLOCK_ENDER_CHEST_OPEN, SoundCategory.BLOCKS, 0.5F, world.random.nextFloat() * 0.1F + 0.9F);
         }
 
         @Override
         protected void onContainerClose(World world, BlockPos pos, BlockState state) {
-            this.playSound(world, pos, CLOSE_SOUND);
-        }
-
-        private void playSound(World world, BlockPos pos, SoundEvent sound) {
-            final float VOLUME = 0.5F;
-            float pitch = world.random.nextFloat() * 0.1F + 0.9F;
-
-            world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, sound, SoundCategory.BLOCKS, VOLUME, pitch);
+            world.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, SoundEvents.BLOCK_ENDER_CHEST_CLOSE, SoundCategory.BLOCKS, 0.5F, world.random.nextFloat() * 0.1F + 0.9F);
         }
 
         @Override
@@ -70,7 +61,6 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
 
     public NetherChestBlockEntity(BlockPos pos, BlockState state) {
         super(NetherChestBlockEntities.NETHER_CHEST, pos, state);
-        this.key = ItemStack.EMPTY;
     }
 
     public @Nullable NetherChestInventoryView getInventory() {
@@ -123,9 +113,9 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
         if (type == VIEWER_COUNT_UPDATE_EVENT) {
             this.lidAnimator.setOpen(data > 0);
             return true;
-        } else {
-            return super.onSyncedBlockEvent(type, data);
         }
+
+        return super.onSyncedBlockEvent(type, data);
     }
 
     public void onOpen(PlayerEntity player) {
@@ -141,12 +131,7 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     }
 
     public boolean canPlayerUse(PlayerEntity player) {
-        if (this.world.getBlockEntity(this.pos) == this) {
-            final double MAX_DISTANCE = 64;
-            double distance = player.squaredDistanceTo((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D);
-            return distance <= MAX_DISTANCE;
-        }
-        return false;
+        return Inventory.canPlayerUse(this, player);
     }
 
     public void onScheduledTick() {
@@ -185,21 +170,25 @@ public class NetherChestBlockEntity extends BlockEntity implements LidOpenable {
     }
 
     private void setupListener() {
-        if (this.listener == null && this.inventory != null) {
-            this.listener = x -> {
-                int output = ((NetherChestInventoryView)x).getComparatorOutput();
-                this.inventoryDirty |= this.syncedOutput != output;
-                this.syncedOutput = output;
-            };
-            this.inventory.addListener(this.listener);
+        if (this.listener != null || this.inventory == null) {
+            return;
         }
+
+        this.listener = x -> {
+            int output = ((NetherChestInventoryView)x).getComparatorOutput();
+            this.inventoryDirty |= this.syncedOutput != output;
+            this.syncedOutput = output;
+        };
+        this.inventory.addListener(this.listener);
     }
 
     private void removeListener() {
-        if (this.listener != null && this.inventory != null) {
-            this.inventory.removeListener(this.listener);
-            this.listener = null;
+        if (this.listener == null || this.inventory == null) {
+            return;
         }
+
+        this.inventory.removeListener(this.listener);
+        this.listener = null;
     }
 
     @Override
